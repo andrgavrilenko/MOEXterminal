@@ -9,6 +9,8 @@ import pytest
 from moex_dashboard.services.dividend_service import (
     DividendRecord,
     DividendService,
+    _capture_plan,
+    _capture_status,
     _classify_tier,
     _parse_record,
 )
@@ -171,6 +173,81 @@ class TestDividendServiceFromFiles:
         records = svc.get_tier1(today=date(2026, 3, 16))
         for r in records:
             assert r.tier == 1
+
+
+# ---------------------------------------------------------------------------
+# _capture_status and _capture_plan
+# ---------------------------------------------------------------------------
+
+class TestCaptureStatus:
+    def test_watch_far(self):       assert _capture_status(30, 6) == "WATCH"
+    def test_watch_boundary(self):  assert _capture_status(11, 6) == "WATCH"
+    def test_prepare_upper(self):   assert _capture_status(10, 6) == "PREPARE"
+    def test_prepare_lower(self):   assert _capture_status(2,  6) == "PREPARE"
+    def test_entry_day_of(self):    assert _capture_status(0,  6) == "ENTRY"
+    def test_entry_day_before(self):assert _capture_status(1,  6) == "ENTRY"
+    def test_exit_d1(self):         assert _capture_status(-1, 6) == "EXIT"
+    def test_exit_d6(self):         assert _capture_status(-6, 6) == "EXIT"
+    def test_done_after_exit(self): assert _capture_status(-7, 6) == "DONE"
+
+
+class TestCapturePlan:
+    def test_all_statuses_have_plan(self):
+        for status in ("WATCH", "PREPARE", "ENTRY", "EXIT", "DONE"):
+            plan = _capture_plan(status)
+            assert isinstance(plan, str) and len(plan) > 0
+
+
+# ---------------------------------------------------------------------------
+# get_capture_calendar / get_capture_table
+# ---------------------------------------------------------------------------
+
+class TestGetCaptureCalendar:
+    _REF = date(2026, 3, 16)
+
+    def test_returns_list(self, svc):
+        records = svc.get_capture_calendar(today=self._REF)
+        assert isinstance(records, list)
+
+    def test_tier_filter_respected(self, svc):
+        records = svc.get_capture_calendar(min_tier=1, today=self._REF)
+        for r in records:
+            assert r.tier == 1
+
+    def test_window_respected_forward(self, svc):
+        from datetime import timedelta
+        records = svc.get_capture_calendar(days_ahead=14, post_ex_days=0, today=self._REF)
+        cutoff = self._REF + timedelta(days=14)
+        for r in records:
+            assert r.ex_date <= cutoff
+
+    def test_window_respected_backward(self, svc):
+        from datetime import timedelta
+        records = svc.get_capture_calendar(days_ahead=0, post_ex_days=6, today=self._REF)
+        start = self._REF - timedelta(days=6)
+        for r in records:
+            assert r.ex_date >= start
+
+    def test_sorted_by_days_to_ex(self, svc):
+        records = svc.get_capture_calendar(today=self._REF)
+        days = [r.days_to_ex for r in records]
+        assert days == sorted(days)
+
+    def test_capture_table_has_status_column(self, svc):
+        df = svc.get_capture_table(today=self._REF)
+        if not df.empty:
+            assert "Статус" in df.columns
+            assert "План" in df.columns
+
+    def test_capture_table_status_values_valid(self, svc):
+        df = svc.get_capture_table(today=self._REF)
+        valid = {"WATCH", "PREPARE", "ENTRY", "EXIT", "DONE"}
+        for v in df["Статус"]:
+            assert v in valid
+
+    def test_capture_table_empty_on_no_data(self, tmp_path):
+        svc2 = DividendService(data_dir=tmp_path)
+        assert svc2.get_capture_table().empty
 
 
 # ---------------------------------------------------------------------------

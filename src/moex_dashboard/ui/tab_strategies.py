@@ -8,25 +8,31 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from ..services.dividend_service import DividendService
 from ..services.market_service import MarketService
 from ..services.momentum_portfolio_service import MomentumPortfolioService
 from ..services.sector_momentum_service import SectorMomentumService
-from ._styling import _cols, bg_action, bg_rate, pct, price
+from ._styling import _cols, bg_action, bg_rate, number, pct, price
 
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data"
 
 _market_svc = MarketService(data_dir=_DATA_DIR)
 _sector_svc = SectorMomentumService(market_service=_market_svc)
 _portfolio_svc = MomentumPortfolioService(market_service=_market_svc)
+_div_svc = DividendService(data_dir=_DATA_DIR)
 
 
 def render_tab_strategies() -> None:
-    sub1, sub2, sub3 = st.tabs(["Сектор Ротация", "Momentum Portfolio", "Преф / Обычка"])
+    sub1, sub2, sub3, sub4 = st.tabs([
+        "Сектор Ротация", "Momentum Portfolio", "Захват дивидендов", "Преф / Обычка",
+    ])
     with sub1:
         _render_sector_rotation()
     with sub2:
         _render_momentum_portfolio()
     with sub3:
+        _render_dividend_capture()
+    with sub4:
         _render_pref_backtest()
 
 
@@ -229,5 +235,95 @@ def _render_momentum_portfolio() -> None:
         .format({c: pct() for c in pct_cols})
         .map(bg_rate, subset=_cols(df, ["Апсайд%"]))
         .map(_bg_rec, subset=_cols(df, ["Рек."]))
+    )
+    st.dataframe(styler, width="stretch", hide_index=True)
+
+
+# ---------------------------------------------------------------------------
+# Dividend Capture
+# ---------------------------------------------------------------------------
+
+_STATUS_COLORS = {
+    "ENTRY":   "background-color: rgba(220, 40,  40,  0.30)",  # red   — act now
+    "PREPARE": "background-color: rgba(255, 165, 0,   0.25)",  # orange — prepare
+    "EXIT":    "background-color: rgba(0,   140, 255, 0.25)",  # blue  — exit window
+    "WATCH":   "background-color: rgba(0,   180, 0,   0.12)",  # green — monitor
+    "DONE":    "background-color: rgba(128, 128, 128, 0.10)",  # gray  — closed
+}
+
+_STATUS_ORDER = {"ENTRY": 0, "EXIT": 1, "PREPARE": 2, "WATCH": 3, "DONE": 4}
+
+
+@st.cache_data(ttl=1800)
+def _get_capture_table(days_ahead: int, post_ex_days: int, min_tier: int):
+    return _div_svc.get_capture_table(
+        days_ahead=days_ahead,
+        post_ex_days=post_ex_days,
+        min_tier=min_tier,
+    )
+
+
+def _render_dividend_capture() -> None:
+    st.subheader("Захват дивидендов")
+    st.caption(
+        "Окно дивидендного захвата: вход до экс-даты, выход D+1..D+6. "
+        "Tier 1 (DSI≥0.5) — надёжные плательщики. "
+        "Статус: **ENTRY** = входить сегодня, **PREPARE** = готовить позицию, "
+        "**EXIT** = активный выход, **WATCH** = наблюдать."
+    )
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        days_ahead = st.slider("Горизонт вперёд (дней)", 7, 60, 30, step=7)
+    with col2:
+        post_ex_days = st.slider("Окно выхода D+N", 3, 10, 6)
+    with col3:
+        min_tier = st.selectbox(
+            "Мин. тир",
+            options=[1, 2, 0],
+            format_func=lambda v: {1: "Tier 1", 2: "Tier 1+2", 0: "Все"}[v],
+        )
+
+    df = _get_capture_table(days_ahead, post_ex_days, min_tier)
+
+    if df.empty:
+        st.info("Нет событий дивидендного захвата в выбранном окне")
+        return
+
+    # Summary badges
+    for status in ("ENTRY", "PREPARE", "EXIT", "WATCH"):
+        count = len(df[df["Статус"] == status])
+        if count:
+            color_map = {"ENTRY": "🔴", "PREPARE": "🟠", "EXIT": "🔵", "WATCH": "🟢"}
+            st.markdown(
+                f"{color_map[status]} **{status}**: {count} "
+                f"{'акция' if count == 1 else 'акции' if count < 5 else 'акций'}"
+                , unsafe_allow_html=False
+            )
+
+    st.markdown("---")
+    st.download_button("CSV", df.to_csv(index=False), "dividend_capture.csv", "text/csv")
+
+    def _bg_status(v):
+        return _STATUS_COLORS.get(v, "")
+
+    def _bg_tier(v):
+        if v == "T1":
+            return "background-color: rgba(0, 180, 0, 0.22)"
+        if v == "T2":
+            return "background-color: rgba(0, 180, 0, 0.10)"
+        return ""
+
+    def _bg_confirmed(v):
+        if v == "✓":
+            return "background-color: rgba(0, 140, 255, 0.20)"
+        return ""
+
+    styler = (
+        df.style
+        .format({"Дивиденд": number(2), "Дох.%": pct(2, signed=False)})
+        .map(_bg_status,    subset=_cols(df, ["Статус"]))
+        .map(_bg_tier,      subset=_cols(df, ["Тир"]))
+        .map(_bg_confirmed, subset=_cols(df, ["Подтв."]))
     )
     st.dataframe(styler, width="stretch", hide_index=True)
