@@ -141,6 +141,82 @@ class DividendService:
         """Convenience: only Tier 1 events in the next *days* days."""
         return self.get_calendar(days=days, min_tier=1, today=today)
 
+    def get_capture_calendar(
+        self,
+        days_ahead: int = 30,
+        post_ex_days: int = 6,
+        min_tier: int = 2,
+        today: date | None = None,
+    ) -> list[DividendRecord]:
+        """Return events relevant for dividend capture workflow.
+
+        Window is based on ex-date, not record date:
+        - upcoming events: today .. today + days_ahead
+        - active exit window: today - post_ex_days .. today
+
+        Args:
+            days_ahead:   look-ahead in calendar days from today.
+            post_ex_days: include recently ex-div names up to this many days back.
+            min_tier:     1 = only tier1, 2 = tier1+tier2, 0 = all tiers.
+            today:        override current date (for tests).
+        """
+        ref = today or date.today()
+        start = ref - timedelta(days=post_ex_days)
+        end = ref + timedelta(days=days_ahead)
+
+        declared = self._load_declared()
+        records: list[DividendRecord] = []
+
+        for raw in self._load_divs():
+            rec = _parse_record(raw, ref, declared)
+            if rec is None:
+                continue
+            if min_tier > 0 and not (1 <= rec.tier <= min_tier):
+                continue
+            if rec.ex_date < start or rec.ex_date > end:
+                continue
+            records.append(rec)
+
+        records.sort(key=lambda r: (r.days_to_ex, -r.div_yield, r.ticker))
+        return records
+
+    def get_capture_table(
+        self,
+        days_ahead: int = 30,
+        post_ex_days: int = 6,
+        min_tier: int = 2,
+        today: date | None = None,
+    ) -> pd.DataFrame:
+        """Return dividend capture watchlist as display-ready DataFrame."""
+        records = self.get_capture_calendar(
+            days_ahead=days_ahead,
+            post_ex_days=post_ex_days,
+            min_tier=min_tier,
+            today=today,
+        )
+        if not records:
+            return pd.DataFrame()
+
+        rows = []
+        for r in records:
+            status = _capture_status(r.days_to_ex, post_ex_days)
+            rows.append({
+                "Тир": f"T{r.tier}" if r.tier else "—",
+                "Тикер": r.ticker,
+                "Название": r.name,
+                "Сектор": r.sector,
+                "Дивиденд": r.div,
+                "Дох.%": r.div_yield / 100,
+                "Экс-дата": r.ex_date.strftime("%d.%m.%Y"),
+                "Рек.дата": r.rec_date.strftime("%d.%m.%Y"),
+                "Дней до экс": r.days_to_ex,
+                "Статус": status,
+                "План": _capture_plan(status),
+                "Подтв.": "✓" if r.confirmed else "",
+            })
+
+        return pd.DataFrame(rows)
+
     # -- Private loaders ----------------------------------------------------
 
     def _load_divs(self) -> list[dict]:
@@ -242,3 +318,29 @@ def _classify_tier(dsi: float) -> int:
     if dsi >= _TIER2_DSI:
         return 2
     return 0
+
+
+def _capture_status(days_to_ex: int, post_ex_days: int) -> str:
+    """Classify event status for dividend capture workflow."""
+    if days_to_ex > 10:
+        return "WATCH"
+    if 2 <= days_to_ex <= 10:
+        return "PREPARE"
+    if 0 <= days_to_ex <= 1:
+        return "ENTRY"
+    if -post_ex_days <= days_to_ex < 0:
+        return "EXIT"
+    return "DONE"
+
+
+def _capture_plan(status: str) -> str:
+    """Human-readable action for current capture status."""
+    if status == "WATCH":
+        return "Наблюдать до входа"
+    if status == "PREPARE":
+        return "Подготовить вход до экс"
+    if status == "ENTRY":
+        return "Вход до закрытия"
+    if status == "EXIT":
+        return "Выход D+1..D+6"
+    return "Окно закрыто"
