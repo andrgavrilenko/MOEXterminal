@@ -3,8 +3,7 @@
 A Python/Streamlit analytical terminal for the Moscow Exchange (MOEX) — arbitrage
 opportunities, sector rotation signals, and perpetual futures funding analysis.
 
-Built as a reverse-engineering study of the [Packman Monitor](https://www.packmanmarkets.ru/)
-dashboard, using the public [MOEX ISS API](https://iss.moex.com) (no auth required).
+using the public [MOEX ISS API](https://iss.moex.com) (no auth required).
 
 ---
 
