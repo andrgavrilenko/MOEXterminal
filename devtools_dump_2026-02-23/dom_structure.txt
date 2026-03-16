@@ -1,0 +1,147 @@
+=== DOM Structure - Russian Market Packman Monitor ===
+Captured: 2026-02-23T17:03:25.652Z
+
+--- 4a. TAB STRUCTURE ---
+
+Tab 0: "Арбитраж"
+  class: tab
+  attributes: class="tab", data-t="arb"
+Tab 1: "Relative Value"
+  class: tab
+  attributes: class="tab", data-t="rv"
+Tab 2: "Div Arb & Carry"
+  class: tab
+  attributes: class="tab", data-t="stocks"
+Tab 3: "Market Data"
+  class: tab
+  attributes: class="tab", data-t="md"
+Tab 4: "Консенсус Акции"
+  class: tab
+  attributes: class="tab", data-t="cons"
+Tab 5: "Стратегии"
+  class: tab
+  attributes: class="tab", data-t="strat"
+Tab 6: "Макро"
+  class: tab
+  attributes: class="tab", data-t="macro"
+Tab 7: "Объёмы"
+  class: tab
+  attributes: class="tab", data-t="vol"
+Tab 8: "GF"
+  class: tab
+  attributes: class="tab", data-t="gf", style="color:var(--orange)"
+Tab 9: "OI Физ/Юр"
+  class: tab
+  attributes: class="tab", data-t="futoi"
+Tab 10: "Кривые"
+  class: tab
+  attributes: class="tab", data-t="curves"
+Tab 11: "Фонды"
+  class: tab active
+  attributes: class="tab active", data-t="funds"
+
+--- SUBTAB STRUCTURE (by tab) ---
+
+Арбитраж:
+  └─ Cash-and-Carry
+  └─ Reverse C&C
+  └─ Calendar FX
+  └─ Cross-Instrument
+  └─ Cross-FX
+  └─ Cross-Gold
+  └─ CIP Arb
+Relative Value:
+  └─ Rate Spread
+  └─ Curve Shape
+  └─ Calendar Commodity
+Div Arb & Carry:
+  └─ Today
+  └─ -1D
+  └─ -1W
+  └─ -1M
+  └─ -1Y
+Market Data:
+  └─ Акции
+  └─ Корп.бонды
+  └─ ОФЗ
+  └─ Фьючерсы
+  └─ Календарь
+Консенсус Акции:
+  (no subtabs)
+Стратегии:
+  └─ Преф/Обычка
+  └─ Сектор Ротация
+  └─ Momentum
+  └─ Дивиденды
+Макро:
+  └─ 1Y
+  └─ 3Y
+  └─ 5Y
+  └─ 10Y
+  └─ MAX
+Объёмы:
+  (no subtabs)
+GF:
+  (no subtabs)
+OI Физ/Юр:
+  └─ Физ Net
+  └─ Физ Long
+  └─ Физ Short
+  └─ Юр Net
+  └─ Юр Long
+  └─ Юр Short
+  └─ Цена
+Кривые:
+  (no subtabs)
+Фонды:
+  (no subtabs)
+
+--- 4b. SCRIPTS ---
+
+Script 0:
+  src: https://cdn.plot.ly/plotly-2.27.0.min.js
+  type: text/javascript
+  size: external
+Script 1:
+  src: [inline]
+  type: text/javascript
+  size: 669 chars
+Script 2:
+  src: [inline]
+  type: text/javascript
+  size: 992 chars
+Script 3:
+  src: [inline]
+  type: text/javascript
+  size: 101751 chars
+Script 4:
+  src: [inline]
+  type: text/javascript
+  size: 6584 chars
+
+--- 4c. CSS FILES ---
+
+Style 0:
+  href: [inline]
+  size: 0 chars
+Style 1:
+  href: [inline]
+  size: 8542 chars
+Style 2:
+  href: [inline]
+  size: 654 chars
+Style 3:
+  href: [inline]
+  size: 705 chars
+Style 4:
+  href: [inline]
+  size: 2136 chars
+
+--- PAGE META ---
+
+Title: Russian Market Packman Monitor
+Charset: UTF-8
+Favicon: SVG (data URI, Packman-like icon)
+Viewport: width=device-width, initial-scale=1.0
+Fonts: JetBrains Mono (code), IBM Plex Sans (UI) — from Google Fonts
+Chart library: Plotly.js v2.27.0 (CDN)

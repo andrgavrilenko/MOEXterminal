@@ -1,0 +1,29 @@
+[project]
+name = "moex-arbitrag"
+version = "0.1.0"
+description = "MOEX Arbitrage Dashboard — educational tool for analyzing arbitrage opportunities"
+readme = "CLAUDE.md"
+requires-python = ">=3.14"
+dependencies = [
+    "streamlit>=1.30",
+    "pandas>=2.0",
+    "requests>=2.31",
+    "numpy>=1.24",
+    "pydantic>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/moex_dashboard"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

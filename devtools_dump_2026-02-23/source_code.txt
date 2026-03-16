@@ -1,0 +1,1880 @@
+=== Source Code - Russian Market Packman Monitor ===
+Captured: 2026-02-23T17:04:49.440Z
+URL: http://188.68.222.166:8503/
+
+=== EXTERNAL SCRIPTS ===
+  https://cdn.plot.ly/plotly-2.27.0.min.js
+
+// ============================================================
+// INLINE SCRIPT 0 (669 chars)
+// ============================================================
+
+
+// Anti-copy protection
+document.addEventListener('contextmenu',function(e){e.preventDefault();});
+document.addEventListener('keydown',function(e){
+if(e.key==='F12')e.preventDefault();
+if(e.ctrlKey&&e.shiftKey&&['I','J','C','U'].includes(e.key.toUpperCase()))e.preventDefault();
+if(e.ctrlKey&&e.key.toUpperCase()==='U')e.preventDefault();
+if(e.ctrlKey&&e.key.toUpperCase()==='S')e.preventDefault();
+});
+(function _dc(){
+var t=new Image();Object.defineProperty(t,'id',{get:function(){
+document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;font-size:24px;background:#0a0e17">Access Denied</div>';
+}});
+})();
+
+
+// ============================================================
+// INLINE SCRIPT 1 (992 chars)
+// ============================================================
+
+
+// Anti-debug: timing detection
+(function(){
+var _t=0;
+setInterval(function(){
+var s=performance.now();
+debugger;
+if(performance.now()-s>100){
+document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;font-size:24px;background:#0a0e17">DevTools Detected — Access Denied</div>';
+window.location.reload();
+}
+},3000);
+})();
+// Block console methods
+(function(){
+var n=function(){};
+['log','debug','info','warn','error','table','trace','dir','group','groupEnd','time','timeEnd','assert','count','clear'].forEach(function(m){
+try{window.console[m]=n}catch(e){}
+});
+})();
+// Block drag
+document.addEventListener('dragstart',function(e){e.preventDefault()});
+// Block print
+window.addEventListener('beforeprint',function(){document.body.style.display='none'});
+window.addEventListener('afterprint',function(){document.body.style.display=''});
+// Block iframe embedding
+if(window.self!==window.top){window.top.location=window.self.location}
+
+
+// ============================================================
+// INLINE SCRIPT 2 (101751 chars)
+// ============================================================
+
+
+let ws,prev={},KR=0.155,lastData={};
+const F=new Intl.NumberFormat('ru-RU');
+const PLT={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(17,24,32,0.5)',font:{color:'#d0d8e2',family:'IBM Plex Sans',size:12},margin:{l:55,r:30,t:35,b:45},
+xaxis:{gridcolor:'#222d3a',zerolinecolor:'#2e3d4e',tickfont:{color:'#9aacbf'}},yaxis:{gridcolor:'#222d3a',zerolinecolor:'#2e3d4e',tickfont:{color:'#9aacbf'}}};
+
+
+function poll(){fetch('/api/snapshot').then(function(r){return r.json()}).then(function(d){$('ws-dot').style.background='var(--green)';$('ws-st').textContent='live';KR=d.key_rate||0.155;render(d);prev=d}).catch(function(){$('ws-dot').style.background='var(--red)';$('ws-st').textContent='retry…'})}
+poll();setInterval(poll,3000);
+fetch('/api/stats').then(r=>r.json()).then(s=>{document.getElementById('ft-vis').textContent=s.today+' сегодня / '+s.total+' всего'});setInterval(()=>fetch('/api/stats').then(r=>r.json()).then(s=>{document.getElementById('ft-vis').textContent=s.today+' сегодня / '+s.total+' всего'}),60000);
+
+// Helpers
+const $=id=>document.getElementById(id);
+function n(v,d=2){return v!=null&&v!==''?Number(v).toFixed(d):'—'}
+function nm(v){return v!=null?F.format(Math.round(v)):'—'}
+function vf(v){if(!v||v===0)return'—';if(v>=1e9)return(v/1e9).toFixed(2)+' млрд';if(v>=1e6)return(v/1e6).toFixed(1)+' млн';return nm(v)}
+function pc(v){return v!=null?(v>=0?'+':'')+n(v*100,2)+'%':'—'}
+function cls(v){return v>0?'pos':v<0?'neg':'neu'}
+function bgcls(v,tp=0.02,tn=-0.02){if(v==null||isNaN(v))return'muted';if(v>tp)return'bg-pos';if(v<tn)return'bg-neg';return'bg-neu'}
+
+var _sortState={};var _tblN=0;var _lastSortTime=0;
+function tbl(headers,rows,id){
+_tblN++;const tid=id||'t'+_tblN;
+let h='<table class="dt" id="'+tid+'"><thead><tr>'+headers.map(([name,right],i)=>{var ss=_sortState[tid];var arrow=(ss&&ss.col===i)?(ss.dir==='asc'?' ▲':' ▼'):'';return '<th'+(right?' class="r"':'')+' data-col="'+i+'" onclick="sortTbl(\''+tid+'\','+i+')" style="cursor:pointer"'+(ss&&ss.col===i?' data-sort="'+ss.dir+'"':'')+'>'+name+' <span class="sort-arrow">'+arrow+'</span></th>'}).join('')+'</tr></thead><tbody>';
+if(_sortState[tid]){var ss=_sortState[tid];var ci=ss.col;rows.sort(function(a,b){var av=(a[ci]||'').replace(/<[^>]*>/g,'').replace(/[^\d.\-]/g,''),bv=(b[ci]||'').replace(/<[^>]*>/g,'').replace(/[^\d.\-]/g,'');var an=parseFloat(av),bn=parseFloat(bv);if(!isNaN(an)&&!isNaN(bn))return ss.dir==='asc'?an-bn:bn-an;av=(a[ci]||'').replace(/<[^>]*>/g,'');bv=(b[ci]||'').replace(/<[^>]*>/g,'');return ss.dir==='asc'?av.localeCompare(bv):bv.localeCompare(av)});}
+for(const r of rows)h+='<tr>'+r.join('')+'</tr>';
+return h+'</tbody></table>';
+}
+
+
+function restoreSorts(){
+for(var tid in _sortState){
+var s=_sortState[tid];
+var t=document.getElementById(tid);
+if(!t)continue;
+var th=t.querySelector('th[data-col="'+s.col+'"]');
+if(!th)continue;
+var rows=Array.from(t.querySelectorAll('tbody tr'));
+if(!rows.length)continue;
+t.querySelectorAll('th').forEach(function(h){h.dataset.sort='none';h.querySelector('.sort-arrow').textContent=''});
+th.dataset.sort=s.dir;
+th.querySelector('.sort-arrow').textContent=s.dir==='asc'?' ▲':' ▼';
+rows.sort(function(a,b){
+var ac=a.cells[s.col],bc=b.cells[s.col];
+if(!ac||!bc)return 0;
+var av=ac.textContent.replace(/[^\d.\-]/g,''),bv=bc.textContent.replace(/[^\d.\-]/g,'');
+var an=parseFloat(av),bn=parseFloat(bv);
+if(!isNaN(an)&&!isNaN(bn))return s.dir==='asc'?an-bn:bn-an;
+return s.dir==='asc'?av.localeCompare(bv):bv.localeCompare(av);
+});
+var tb=t.querySelector('tbody');
+rows.forEach(function(r){tb.appendChild(r)});
+}
+}
+
+function sortTbl(tid,col){
+const t=document.getElementById(tid);if(!t)return;
+const tbody=t.querySelector('tbody');
+const rows=Array.from(tbody.querySelectorAll('tr'));
+const th=t.querySelectorAll('th')[col];
+const isR=th.classList.contains('r');
+// Toggle direction
+const cur=th.dataset.sort||'none';
+const dir=cur==='asc'?'desc':'asc';
+// Reset all arrows
+t.querySelectorAll('th').forEach(h=>{h.dataset.sort='none';h.querySelector('.sort-arrow').textContent=''});
+th.dataset.sort=dir;
+_sortState[tid]={col:col,dir:dir};_lastSortTime=Date.now();
+th.querySelector('.sort-arrow').textContent=dir==='asc'?' ▲':' ▼';
+rows.sort((a,b)=>{
+let va=a.cells[col].textContent.replace(/[₽%+,\s млрдн]/g,'').trim();
+let vb=b.cells[col].textContent.replace(/[₽%+,\s млрдн]/g,'').trim();
+const na=parseFloat(va),nb=parseFloat(vb);
+if(!isNaN(na)&&!isNaN(nb))return dir==='asc'?na-nb:nb-na;
+return dir==='asc'?va.localeCompare(vb,'ru'):vb.localeCompare(va,'ru');
+});
+rows.forEach(r=>tbody.appendChild(r));
+}
+function td(v,cls=''){return'<td'+(cls?' class="'+cls+'"':'')+'>'+v+'</td>'}
+function tdr(v,cls=''){return'<td class="r'+(cls?' '+cls:'')+'">'+(v)+'</td>'}
+function tdc(v,c){return'<td class="'+c+'">'+(v)+'</td>'}
+
+function metric(label,value){return'<div class="mc"><div class="ml">'+label+'</div><div class="mv">'+value+'</div></div>'}
+
+
+function initSubTabs(containerId, tabs, currentRef, onSwitch){
+var st=$(containerId);
+if(st.dataset.init) return;
+st.innerHTML=tabs.map(function(t){return'<div class="stab'+(t[0]===currentRef()?' active':'')+'" data-k="'+t[0]+'">'+t[1]+'</div>'}).join('');
+st.querySelectorAll('.stab').forEach(function(el){el.onclick=function(){onSwitch(el.dataset.k);st.querySelectorAll('.stab').forEach(function(s){s.classList.toggle('active',s.dataset.k===currentRef())})}});
+st.dataset.init='1';
+}
+
+// ═══════ RENDER ═══════
+function render(d){_tblN=0;
+if(!window._declDiv&&!window._declLoading){window._declLoading=true;fetch('/static/declared_divs.json').then(r=>r.json()).then(data=>{window._declDiv=data;window._declLoading=false;}).catch(()=>{window._declDiv={};window._declLoading=false;});}
+
+updateHeader(d);updateSidebar(d);
+renderArb(d);renderRV(d);renderCurves(d);renderStocks(d);renderMD(d);renderStrat(d);lastData=d;if(d.macro_catalog)initMacro(d.macro_catalog);renderVolume(d);renderConsensus(d);var _secSel=document.getElementById('cons-sec');
+  if(_secSel&&_secSel.options.length<3){var _ss={};window._consData.forEach(function(c){if(c.sector)_ss[c.sector]=(_ss[c.sector]||0)+1});
+  Object.keys(_ss).sort().forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s+' ('+_ss[s]+')';_secSel.appendChild(o)});}
+  if(!window._consEvt){window._consEvt=true;['cons-filter','cons-sec'].forEach(function(id){var el=document.getElementById(id);if(el)el.onchange=el.oninput=function(){renderConsensus(lastData)}});}if(!window._volEvt){window._volEvt=true;var vf=document.getElementById('vol-filter');if(vf)vf.oninput=function(){renderVolume(lastData)};}
+$('ft-t').textContent='Акций: '+(d.equities?.length||0)+' | Фьюч: '+(d.algopack_futures?.length||0)+' | ОФЗ: '+(d.ofz?.length||0);
+$('ft-u').textContent='Last: '+(d.last_update||'—');
+}
+
+function updateHeader(d){
+$('h-ks').textContent='КС '+(KR*100).toFixed(1)+'%';
+const r=d.rusfar;if(r&&r.length>0){const r1=r.find(x=>x.tenor==='1D'||x.tenor==='RUSFAR');if(r1)$('h-rf').textContent='RUSFAR '+(r1.rate*100).toFixed(2)+'%'}
+$('h-time').textContent=new Date().toLocaleTimeString('ru-RU');
+$('h-upd').textContent='UPD: '+(d.last_update?d.last_update.split('T')[1]?.slice(0,8):'—');
+}
+
+function updateSidebar(d){
+let h='';for(const s of(d.spots||[]))h+='<div class="sr"><span class="st">'+s.ticker+'</span><span class="sp">'+n(s.price,4)+'</span></div>';
+$('sb-fx').innerHTML=h;
+h='';for(const i of(d.indexes||[]))h+='<div class="sr"><span class="st">'+i.ticker+'</span><span class="sp">'+n(i.price,2)+'</span></div>';
+$('sb-idx').innerHTML=h;
+h='';for(const r of(d.rusfar||[]))h+='<div class="sr"><span class="st">'+r.tenor+'</span><span class="sp">'+(r.rate*100).toFixed(2)+'%</span></div>';
+$('sb-rf').innerHTML=h;
+// Header price tags
+for(const s of(d.spots||[])){
+  if(s.ticker==='USDRUB'||s.ticker==='USD/RUB'){var e=$('h-usdrub');if(e)e.textContent='USDRUB '+n(s.price,2);}
+  if(s.ticker==='CNYRUB'||s.ticker==='CNY/RUB'){var e=$('h-cnyrub');if(e)e.textContent='CNYRUB '+n(s.price,4);}
+}
+for(const i of(d.indexes||[])){
+  if(i.ticker==='IMOEX'){var e=$('h-imoex');if(e)e.textContent='IMOEX '+n(i.price,0);}
+  if(i.ticker==='RTS'||i.ticker==='RTSI'){var e=$('h-rts');if(e)e.textContent='RTS '+n(i.price,0);}
+}
+}
+
+// ═══════ АРБИТРАЖ ═══════
+let arbSub='cnc';
+const arbTabs=[['cnc','Cash-and-Carry'],['rev','Reverse C&C'],['calfx','Calendar FX'],['cross','Cross-Instrument'],['cfx','Cross-FX'],['cgold','Cross-Gold'],['cip','CIP Arb']];
+
+function renderArb(d){
+const st=$('arb-st');
+if(!st.dataset.init){
+st.innerHTML=arbTabs.map(([k,v])=>'<div class="stab'+(k===arbSub?' active':'')+'" data-a="'+k+'">'+v+'</div>').join('');
+st.querySelectorAll('.stab').forEach(el=>el.onclick=()=>{arbSub=el.dataset.a;st.querySelectorAll('.stab').forEach(s=>s.classList.toggle('active',s.dataset.a===arbSub));renderArbContent(prev)});
+st.dataset.init='1';
+}
+renderArbContent(d);
+}
+
+function renderArbContent(d){
+const c=$('arb-content');
+const basis=d.basis||[];const arb=d.arbitrage||[];
+const rusfar=d.rusfar?.find(r=>r.tenor==='1D'||r.tenor==='RUSFAR');
+const rf=rusfar?rusfar.rate:null;
+let h='';
+
+if(arbSub==='cnc'){
+h+='<div class="sub">Cash-and-Carry — спот + шорт фьючерс</div>';
+h+='<div class="cap">Implied rate из базиса. КС: '+(KR*100).toFixed(1)+'%'+(rf?' | RUSFAR: '+(rf*100).toFixed(2)+'%':'')+'</div>';
+if(basis.length){
+const hd=[['Актив'],['Контракт'],['Экспирация'],['Дней','r'],['Спот','r'],['Фьюч','r'],['Implied Rate','r'],['Премия КС','r'],['Объём ₽','r'],['Сделки','r']];
+if(rf){hd.push(['Net Carry %','r']);hd.push(['Net Carry Ann.','r']);}
+const rows=basis.map(b=>{
+const ir=b.annualized_pct/100;const pk=ir-KR;
+const r=[td(b.asset_group,'tk'),td(b.futures_ticker,'tk'),td((b.expiration_date||'').slice(0,10)),tdr(b.days_to_expiry),tdr(n(b.spot_price,4)),tdr(n(b.futures_price,4)),
+tdr(pc(ir),bgcls(ir)),tdr(pc(pk),bgcls(pk,0.01,-0.01)),tdr(nm(b.volume_rub)),tdr(nm(b.num_trades))];
+if(rf){var nc_pct=(b.futures_price/b.spot_price-1)-rf*b.days_to_expiry/365;var nc_ann=ir-rf;
+r.push(tdr(pc(nc_pct),bgcls(nc_pct,0.005,-0.005)));
+r.push(tdr(pc(nc_ann),bgcls(nc_ann,0.01,-0.01)));}
+return r;
+});
+h+=tbl(hd,rows);
+}
+const ca=arb.filter(a=>a.strategy==='Cash-Carry');
+if(ca.length){h+='<hr class="sep"><div class="sub">Арбитражные возможности</div>'+arbTable(ca)}
+}
+else if(arbSub==='rev'){
+h+='<div class="sub">Reverse Cash-and-Carry — шорт спот + лонг фьючерс</div>';
+h+='<div class="cap">Бэквордация. Акции с большими дивидендами, аномалии.</div>';
+const ra=arb.filter(a=>a.strategy==='Rev.Cash-Carry');
+if(ra.length)h+=arbTable(ra);else h+='<div class="cap">Нет значимых бэквордаций.</div>';
+}
+else if(arbSub==='calfx'){
+h+='<div class="sub">Calendar Spread FX — implied rates валютных фьючерсов</div>';
+const cs=(d.calendar_spreads||[]).filter(s=>['CNYRUB','USDRUB','EURRUB'].includes(s.asset));
+if(cs.length){
+const rows=cs.map(s=>[td(s.asset,'tk'),td(s.near),td(s.far),tdr(pc(s.delta_rate),bgcls(s.delta_rate,0.03,-0.03)),tdr(n(s.abs_spread,4)),td(s.direction)]);
+h+=tbl([['Актив'],['Ближний'],['Дальний'],['Δ Rate','r'],['Абс.спред','r'],['Направление']],rows);
+}else h+='<div class="cap">Нет данных</div>';
+}
+else if(arbSub==='cross'){
+h+='<div class="sub">Cross-Instrument — MX vs MM, RI vs RM</div>';
+h+='<div class="cap">Один базовый актив, разный размер контракта</div>';
+const ci=arb.filter(a=>a.strategy==='Cross-Instr');
+if(ci.length)h+=arbTable(ci);
+// Index basis
+const ib=basis.filter(b=>['MIX','MXI'].includes(b.asset_group));
+if(ib.length){
+h+='<hr class="sep"><div class="sub">Индексы MOEX vs спот IMOEX</div>';
+const rows=ib.map(b=>{
+const ir=b.annualized_pct/100;const pk=ir-KR;
+const fair=b.spot_price*(1+KR*b.days_to_expiry/365);
+const di=pk<0?fair-b.futures_price:null;
+const dy=di!=null?di/b.spot_price:null;
+var _ir=[td(b.asset_group,'tk'),td(b.futures_ticker,'tk'),td((b.expiration_date||'').slice(0,10)),tdr(b.days_to_expiry),tdr(n(b.spot_price,2)),tdr(n(b.futures_price,4)),tdr(n(fair,2)),tdr(pc(ir),bgcls(ir)),tdr(pc(pk),bgcls(pk,0.01,-0.01))];
+if(rf){var nc_p=(b.futures_price/b.spot_price-1)-rf*b.days_to_expiry/365;var nc_a=ir-rf;
+_ir.push(tdr(pc(nc_p),bgcls(nc_p,0.005,-0.005)));_ir.push(tdr(pc(nc_a),bgcls(nc_a,0.01,-0.01)));}
+_ir.push(tdr(di!=null?n(di,2):'—'));_ir.push(tdr(dy!=null?pc(dy):'—'));
+return _ir;
+});
+var _ihd=[['Актив'],['Контракт'],['Эксп.'],['Дней','r'],['IMOEX','r'],['Фьюч','r'],['Fair','r'],['Impl.Rate','r'],['Пр.КС','r']];
+if(rf){_ihd.push(['Net Carry %','r']);_ihd.push(['Net Carry Ann.','r']);}
+_ihd.push(['Div Implied','r']);_ihd.push(['Div Yield','r']);
+h+=tbl(_ihd,rows);
+}
+}
+else if(arbSub==='cfx'){
+h+='<div class="sub">Cross-FX — CR/Si/Eu треугольный арбитраж</div>';
+h+='<div class="cap">Si ≈ CR × USDCNY, Eu ≈ Si × EURUSD</div>';
+const cfx=d.cross_fx||[];
+if(cfx.length){
+const rows=cfx.map(c=>[td((c.expiration||'').slice(0,10)),tdr(c.days),tdr(pc(c.cr_rate),bgcls(c.cr_rate)),tdr(pc(c.si_rate),bgcls(c.si_rate)),tdr(pc(c.eu_rate),bgcls(c.eu_rate)),tdr(pc(c.max_delta),bgcls(c.max_delta))]);
+h+=tbl([['Экспирация'],['Дней','r'],['CR Rate','r'],['Si Rate','r'],['Eu Rate','r'],['Max Δ','r']],rows);
+}
+const fa=arb.filter(a=>a.strategy==='Cross-FX');
+if(fa.length){h+='<hr class="sep"><div class="sub">Арбитражные пары</div>'+arbTable(fa)}
+}
+else if(arbSub==='cgold'){
+h+='<div class="sub">Cross-Gold — GL vs GD × USDRUB</div>';
+h+='<div class="cap">Implied USDRUB из GL(руб) / GD(долл) × 31.1035</div>';
+const cg=d.cross_gold||[];
+if(cg.length){
+const rows=cg.map(g=>[td((g.expiration||'').slice(0,10)),tdr(n(g.gl_price,2)),tdr(n(g.gd_price,2)),tdr(n(g.impl_usdrub,2)),tdr(n(g.mkt_usdrub,2)),tdr(pc(g.divergence),bgcls(g.divergence,0.01,-0.01))]);
+h+=tbl([['Экспирация'],['GL RUB','r'],['GD USD','r'],['Impl.USDRUB','r'],['Mkt.USDRUB','r'],['Расхожд.','r']],rows);
+}
+const ga=arb.filter(a=>a.strategy==='Cross-Gold');
+if(ga.length){h+='<hr class="sep"><div class="sub">Арбитражные возможности</div>'+arbTable(ga)}
+}
+else if(arbSub==='cip'){
+h+='<div class="sub">CIP — Covered Interest Rate Parity</div>';
+h+='<div class="cap">Implied USDCNY из фьючерсов Si/CR.</div>';
+const ca=arb.filter(a=>a.strategy==='CIP-Arb');
+if(ca.length)h+=arbTable(ca);else h+='<div class="cap">Нет значимых CIP-расхождений.</div>';
+const cp=d.cip_forwards||[];
+if(cp.length){
+h+='<hr class="sep"><div class="sub">Implied USDCNY forward из Si / CR</div>';
+const rows=cp.map(c=>[td((c.expiration||'').slice(0,10)),tdr(c.days),tdr(n(c.si_usdrub,4)),tdr(n(c.cr_cnyrub,4)),tdr(n(c.impl_usdcny,4)),tdr(n(c.spot_usdcny,4)),tdr(pc(c.fwd_premium),bgcls(c.fwd_premium))]);
+h+=tbl([['Экспирация'],['Дней','r'],['Si USDRUB','r'],['CR CNYRUB','r'],['Impl.USDCNY','r'],['Spot USDCNY','r'],['Fwd Prem.','r']],rows);
+h+='<div class="cap">Fwd Premium = (Impl/Spot − 1) × 365/Дней</div>';
+}
+}
+
+c.innerHTML=h;
+}
+
+function arbTable(items){
+const rows=items.map(a=>[td(a.instrument,'tk'),td(a.details||''),tdr(pc(a.profit),bgcls(a.profit)),td(a.action||'')]);
+return tbl([['Инструмент'],['Детали'],['Profit','r'],['Действие']],rows);
+}
+
+// ═══════ RELATIVE VALUE ═══════
+let rvSub='cal';
+const rvTabs=[['cal','Calendar Commodity'],['shape','Curve Shape'],['rate','Rate Spread']];
+
+function renderRV(d){
+const st=$('rv-st');
+if(!st.dataset.init){
+st.innerHTML=rvTabs.map(([k,v])=>'<div class="stab'+(k===rvSub?' active':'')+'" data-r="'+k+'">'+v+'</div>').join('');
+st.querySelectorAll('.stab').forEach(el=>el.onclick=()=>{rvSub=el.dataset.r;st.querySelectorAll('.stab').forEach(s=>s.classList.toggle('active',s.dataset.r===rvSub));renderRVContent(prev)});
+st.dataset.init='1';
+}
+renderRVContent(d);
+}
+
+function renderRVContent(d){
+const c=$('rv-content');let h='';
+const cs=d.calendar_spreads||[];const curves=d.curves||[];const arb=d.arbitrage||[];
+
+if(rvSub==='cal'){
+const cats=[['⛽ Энергоносители',['Brent','Nat Gas','Light Oil']],['🪙 Металлы',['Gold (USD)','Gold (RUB)','Silver','Platinum','Palladium']]];
+for(const [label,assets] of cats){
+const sub=cs.filter(s=>assets.includes(s.asset));
+if(!sub.length)continue;
+h+='<div class="sub">'+label+'</div>';
+const rows=sub.map(s=>[td(s.asset,'tk'),td(s.near),td(s.far),tdr(pc(s.delta_rate),bgcls(s.delta_rate,0.03,-0.03)),tdr(n(s.abs_spread,4)),td(s.direction)]);
+h+=tbl([['Актив'],['Ближний'],['Дальний'],['Δ Rate','r'],['Абс.спред','r'],['Направление']],rows);
+}
+}
+else if(rvSub==='shape'){
+const cats=[['💱 Валюты',['CNYRUB','USDRUB','EURRUB']],['📊 Индексы',['MIX','MXI','RTS','RTSM']],['⛽ Энергоносители',['Brent','Nat Gas','Light Oil']],['🪙 Металлы',['Gold (USD)','Gold (RUB)','Silver','Platinum','Palladium']]];
+for(const [label,assets] of cats){
+const sub=curves.filter(c=>assets.includes(c.asset));
+if(!sub.length)continue;
+h+='<div class="sub">'+label+'</div>';
+const rows=sub.map(c=>{
+const sc=c.shape||'';const scls=sc.includes('КОНТАНГО')?'pos':sc.includes('БЭКВОРДАЦИЯ')?'neg':'warn';
+return[td(c.asset,'tk'),td(c.contracts),tdr(n(c.front,4)),tdr(n(c.back,4)),tdc(sc,scls),tdr(n(c.spread,4),c.spread>0?'pos':c.spread<0?'neg':'')];
+});
+h+=tbl([['Актив'],['Контр.'],['Front','r'],['Back','r'],['Форма'],['Спред','r']],rows);
+}
+}
+else if(rvSub==='rate'){
+h+='<div class="sub">Implied Rate vs Key Rate — carry premium</div>';
+h+='<div class="cap">Премия может не схлопнуться. КС: '+(KR*100).toFixed(1)+'%</div>';
+if(arb.length){
+const rows=arb.map(a=>{
+const tag=["Cash-Carry","Rev.Cash-Carry","Cross-Instr","Cross-FX","Cross-Gold","CIP-Arb"].includes(a.strategy)?'[ARB]':'[RV]';
+return[td(tag),td(a.strategy),td(a.instrument,'tk'),td(a.details||''),td(a.action||''),tdr(pc(a.profit),bgcls(a.profit))];
+});
+h+=tbl([['Тип'],['Стратегия'],['Инструмент'],['Детали'],['Действие'],['Profit','r']],rows);
+}
+}
+c.innerHTML=h;
+}
+
+// ═══════ КРИВЫЕ ═══════
+function renderCurves(d){_initCC()}
+var _ccL=0,_ccD={'0':1,'1':0,'7':0,'30':0,'365':0};
+var _ccC=['#2ee67a','#fcc73e','#3b82f6','#ff5a6a','#8b5cf6'];
+var _ccN={'0':'Today','1':'-1D','7':'-1W','30':'-1M','365':'-1Y'};
+var _ccAll=[];
+function _initCC(){if(_ccL)return;_ccL=1;
+fetch('/api/curve/catalog').then(function(r){return r.json()}).then(function(it){
+_ccAll=it;
+var cats={};it.forEach(function(a){if(a.category){if(!cats[a.category])cats[a.category]=1;else cats[a.category]++}});
+var cs=document.getElementById('curve-cat');
+if(cs){Object.keys(cats).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c+' ('+cats[c]+')';cs.appendChild(o)})}
+_fillAssets('')})}
+function _fillAssets(cat){
+var s=document.getElementById('curve-asset');if(!s)return;
+s.innerHTML='<option value="">—</option>';
+_ccAll.forEach(function(a){
+if(cat&&a.category!==cat)return;
+var o=document.createElement('option');o.value=a.code;o.textContent=a.code+' ('+a.contracts+')';s.appendChild(o)})}
+function _onCurveCat(){var c=document.getElementById('curve-cat').value;_fillAssets(c);
+document.getElementById('curve-asset').value='';try{Plotly.purge('curve-chart')}catch(e){}}
+function onCurveAssetChange(){var a=document.getElementById('curve-asset').value;
+if(!a){document.getElementById('curve-chart').innerHTML='';return}
+_ldCurve(a)}
+function toggleCurveDate(b){var k=b.dataset.cd;_ccD[k]=_ccD[k]?0:1;b.classList.toggle('active',!!_ccD[k]);
+var a=document.getElementById('curve-asset').value;if(a)_ldCurve(a)}
+function _ldCurve(asset){var now=new Date(),dd=[];
+['0','1','7','30','365'].forEach(function(k){if(!_ccD[k])return;var d=new Date(now);d.setDate(d.getDate()-parseInt(k));dd.push(d.toISOString().slice(0,10))});
+if(!dd.length){document.getElementById('curve-chart').innerHTML='';return}
+try{Plotly.purge('curve-chart')}catch(e){}
+fetch('/api/curve?asset='+encodeURIComponent(asset)+'&dates='+dd.join(',')).then(function(r){return r.json()}).then(function(d){try{_drCC(d)}catch(e){document.getElementById('curve-chart').innerHTML='<div class="cap">Error: '+e.message+'</div>';console.error('_drCC error:',e);alert('Chart error: '+e.message)}}).catch(function(e){document.getElementById('curve-chart').innerHTML='<div class="cap">Fetch error: '+e+'</div>';console.error('fetch error:',e);alert('Fetch error: '+e)})}
+function _drCC(data){var cv=data.curves||[];
+if(!cv.length){document.getElementById('curve-chart').innerHTML='<div class="cap">No data</div>';return}
+var tr=[],ak=[];['0','1','7','30','365'].forEach(function(k){if(_ccD[k])ak.push(k)});
+for(var i=0;i<cv.length;i++){var c=cv[i],p=c.points;if(!p.length)continue;
+var lb=(i<ak.length?_ccN[ak[i]]:'')+' ('+c.actual+')';
+var cl=_ccC[i%5],f=i===0;
+tr.push({x:p.map(function(v){return v.name||v.ticker}),y:p.map(function(v){return v.price}),
+name:lb,mode:'lines+markers',line:{color:cl,width:f?3:1.5,dash:f?'solid':'dot'},
+marker:{size:f?7:4},hovertemplate:'%{x}<br>%{y:.4f}<extra>'+lb+'</extra>'})}
+if(cv.length===2){var t0=cv[0].points,ci=1,cmp=cv[ci].points;
+var cnm=ci<ak.length?_ccN[ak[ci]]:'prev',cm={};
+cmp.forEach(function(v){cm[v.ticker]=v.price});
+var bx=[],by=[],bt=[],bc=[];
+t0.forEach(function(v){if(cm[v.ticker]!==undefined){var ch=v.price-cm[v.ticker];
+bx.push(v.name||v.ticker);by.push(ch);bc.push(ch>=0?'rgba(46,230,122,0.6)':'rgba(255,90,106,0.6)')}});
+if(bx.length)tr.push({x:bx,y:by,name:'Chg vs '+cnm,type:'bar',marker:{color:bc},yaxis:'y2',
+hovertemplate:'%{x}: %{y:+.4f}<extra></extra>'})}
+var ymin=1e18,ymax=-1e18;
+cv.forEach(function(c){c.points.forEach(function(p){if(p.price<ymin)ymin=p.price;if(p.price>ymax)ymax=p.price})});
+var pad=(ymax-ymin)*0.15||1;
+var hasBar=tr.some(function(t){return t.type==='bar'});
+Plotly.react('curve-chart',tr,Object.assign({},PLT,{height:window.innerWidth<768?(hasBar?500:450):(hasBar?738:738),
+title:{text:data.asset+' - Term Structure',font:{size:14,color:'#e2e8f0'}},
+xaxis:Object.assign({},PLT.xaxis,{title:'Contract',tickangle:-45}),
+yaxis:Object.assign({},PLT.yaxis,{title:'Price',range:[ymin-pad,ymax+pad],domain:hasBar?[0.22,1]:[0,1]}),
+yaxis2:hasBar?{domain:[0,0.18],showgrid:false,zeroline:true,zerolinecolor:'#555',
+title:{text:'Change',font:{color:'#fcc73e',size:10}},tickfont:{color:'#fcc73e',size:9}}:{visible:false},
+legend:{orientation:'v',y:0.98,x:0.99,xanchor:'right',yanchor:'top',bgcolor:'rgba(10,14,23,0.7)',bordercolor:'rgba(255,255,255,0.1)',borderwidth:1,font:{size:9,color:'#94a3b8'}},margin:{t:40,b:60,l:60,r:40},
+hovermode:'x unified',barmode:'relative'}),{responsive:true,displayModeBar:false});
+addFSBtn('curve-chart-wrap');
+}
+
+function ypad(vals){
+const v=vals.filter(x=>x!=null&&!isNaN(x));if(!v.length)return null;
+const mn=Math.min(...v),mx=Math.max(...v);const p=Math.max((mx-mn)*0.15,1);
+return[mn-p,mx+p];
+}
+
+// ═══════ АКЦИИ ═══════
+function renderStocks(d){
+const sc=d.stock_carry||[];const c=$('stocks-content');
+var divMap=window._divData||{};
+var _rfs=d.rusfar?.find(r=>r.tenor==='1D'||r.tenor==='RUSFAR');var rf=_rfs?_rfs.rate:null;
+if(!sc.length){c.innerHTML='<div class="cap">Нет данных</div>';return}
+let h='<div class="sub">Сводка</div>';
+const names=[...new Set(sc.map(s=>s.stock_name))];
+const sumRows=names.map(nm=>{
+const sub=sc.filter(s=>s.stock_name===nm);const s0=sub[0];const sl=sub[sub.length-1];
+const md=Math.max(...sub.map(s=>s.div_implied||0));const my=Math.max(...sub.map(s=>s.div_yield||0));
+var dv=divMap[s0.spot_ticker]||{};var fDiv=dv.div||0;var fYld=dv['yield']||0;
+var dd=(window._declDiv||{})[s0.spot_ticker]||[];var dSum=dd.reduce(function(a,x){return a+x.div},0);var dRec=dd.length?dd[0].record_date:'';
+var delta=md>0&&fDiv>0?md-fDiv:0;var deltaPct=fDiv>0&&md>0?((md/fDiv-1)*100):0;
+return[td(nm,'tk'),td(s0.spot_ticker),tdr(n(s0.spot_price,2)),tdr(sub.length),td(s0.futures_ticker),tdr(n(s0.futures_price_norm,2)),tdr(pc(s0.implied_rate),bgcls(s0.implied_rate)),
+rf?tdr(pc(s0.implied_rate-rf),bgcls(s0.implied_rate-rf,0.01,-0.01)):'',
+td(sub.length>1?sl.futures_ticker:'—'),tdr(sub.length>1?n(sl.futures_price_norm,2):'—'),tdr(sub.length>1?pc(sl.implied_rate):'—',sub.length>1?bgcls(sl.implied_rate):''),
+tdr(fDiv>0?n(fDiv,2):'—'),tdr(fYld>0?'<span class="pos">'+n(fYld,1)+'%</span>':'—'),
+tdr(dSum>0?n(dSum,2):'—'),tdr(dSum>0&&s0.spot_price>0?'<span class="pos">'+n(dSum/s0.spot_price*100,1)+'%</span>':'—'),td(dRec||'—'),
+tdr(md>0?n(md,2):'—'),tdr(my>0?pc(my):'—'),
+tdr(delta!=0?'<span class="'+cls(delta)+'">'+((delta>=0?'+':'')+n(delta,2))+'</span>':'—'),
+tdr(deltaPct!=0?'<span class="'+cls(deltaPct)+'">'+((deltaPct>=0?'+':'')+n(deltaPct,1)+'%')+'</span>':'—')];
+});
+var _smhd=[['Акция'],['Тикер'],['Спот','r'],['Контр.','r'],['Ближний'],['Цена','r'],['Rate','r']];
+if(rf){_smhd.push(['Net Ann.','r']);}
+_smhd=_smhd.concat([['Дальний'],['Цена','r'],['Rate','r'],['Прогн.Див','r'],['Прогн.%','r'],['Объявл.Див','r'],['Объявл.%','r'],['Отсечка'],['Impl.Див','r'],['Impl.%','r'],['Δ Руб','r'],['Δ%','r']]);
+h+=tbl(_smhd,sumRows);
+h+='<hr class="sep"><div class="sub">Детальные кривые</div>';
+for(const nm of names){
+const sub=sc.filter(s=>s.stock_name===nm);const s0=sub[0];
+h+='<div class="sub" style="margin-top:10px">'+nm+' (спот: '+n(s0.spot_price,2)+' ₽)</div>';
+const rows=sub.map(s=>{var _sr=[td(s.futures_ticker,'tk'),td((s.expiration||'').slice(0,10)),tdr(s.days_to_expiry),tdr(n(s.futures_price_norm,2)),tdr(n(s.fair_price,2)),tdr(pc(s.implied_rate),bgcls(s.implied_rate)),tdr(pc(s.premium),bgcls(s.premium,0.01,-0.01))];
+if(rf){var nc_p=(s.futures_price_norm/s0.spot_price-1)-rf*s.days_to_expiry/365;var nc_a=s.implied_rate-rf;
+_sr.push(tdr(pc(nc_p),bgcls(nc_p,0.005,-0.005)));_sr.push(tdr(pc(nc_a),bgcls(nc_a,0.01,-0.01)));}
+_sr.push(tdr(s.div_implied>0?n(s.div_implied,2):'—'));_sr.push(tdr(s.div_yield>0?pc(s.div_yield):'—'));
+return _sr;});
+var _shd=[['Фьючерс'],['Экспирация'],['Дней','r'],['Цена','r'],['Fair','r'],['Rate','r'],['Пр.КС','r']];
+if(rf){_shd.push(['Net Carry %','r']);_shd.push(['Net Carry Ann.','r']);}
+_shd.push(['Div Implied','r']);_shd.push(['Div Yield','r']);
+h+=tbl(_shd,rows);
+}
+c.innerHTML=h;
+}
+
+// ═══════ MARKET DATA ═══════
+let mdSub='eq';
+const mdTabs=[['eq','Акции'],['corp','Корп.бонды'],['ofz','ОФЗ'],['fut','Фьючерсы'],['cal','Календарь']];
+
+function renderMD(d){
+const st=$('md-st');
+if(!st.dataset.init){
+st.innerHTML=mdTabs.map(([k,v])=>'<div class="stab'+(k===mdSub?' active':'')+'" data-m="'+k+'">'+v+'</div>').join('');
+st.querySelectorAll('.stab').forEach(el=>el.onclick=()=>{mdSub=el.dataset.m;st.querySelectorAll('.stab').forEach(s=>s.classList.toggle('active',s.dataset.m===mdSub));renderMDContent(prev)});
+st.dataset.init='1';
+}
+renderMDContent(d);
+}
+
+function renderMDContent(d){
+const c=$('md-content');let h='';
+var _ycw=document.getElementById('ofz-yc-wrap');if(_ycw&&mdSub!=='ofz')_ycw.style.display='none';
+if(mdSub!=='corp'){try{Plotly.purge('corp-yc')}catch(e){}}
+
+if(mdSub==='fut'){
+const apAll=d.algopack_futures||[];
+if(!apAll.length){c.innerHTML='<div class="cap">Нет данных</div>';return}
+// Category filter
+const cats={'Валюта':['CNYRUB','USDRUB','EURRUB'],'Индексы':['MIX','MXI','RTS','RTSM'],'Энергоносители':['Brent','Nat Gas','Light Oil'],'Металлы':['Gold (USD)','Gold (RUB)','Silver','Platinum','Palladium']};
+const known=new Set();Object.values(cats).forEach(a=>a.forEach(x=>known.add(x)));
+const stockGroups=[...new Set(apAll.filter(a=>a.asset_group&&!known.has(a.asset_group)).map(a=>a.asset_group))].sort();
+if(stockGroups.length)cats['Акции']=stockGroups;
+if(!c.dataset.futCat)c.dataset.futCat='all';
+const fc=c.dataset.futCat;
+h+='<div class="flt"><span style="color:var(--td);font-size:11px">Категория:</span><select onchange="setFutCat(this.value)">';
+h+='<option value="all"'+(fc==='all'?' selected':'')+'>Все фьючерсы ('+apAll.length+')</option>';
+for(const [cat,assets] of Object.entries(cats)){const cnt=apAll.filter(a=>assets.includes(a.asset_group)).length;if(cnt)h+='<option value="'+cat+'"'+(fc===cat?' selected':'')+'>'+cat+' ('+cnt+')</option>';}
+h+='</select></div>';
+const catAssets=cats[fc]||[];
+const ap=fc==='all'?apAll:apAll.filter(a=>catAssets.includes(a.asset_group));
+// Metrics
+const oi=ap.filter(a=>a.oi_close>0);
+const totalOI=ap.reduce((s,a)=>s+(a.oi_close||0),0);
+const totalVol=ap.reduce((s,a)=>s+(a.vol||0),0);
+const totalBuy=ap.reduce((s,a)=>s+(a.vol_b||0),0);
+const totalSell=ap.reduce((s,a)=>s+(a.vol_s||0),0);
+const netFlow=totalVol>0?(totalBuy-totalSell)/totalVol:0;
+const ad=ap.filter(a=>a.disb!=null);const avgD=ad.length?ad.reduce((s,a)=>s+a.disb,0)/ad.length:0;
+h+='<div class="mets">'+metric('Инструм.',ap.length)+metric('С OI>0',oi.length)+metric('Σ OI',nm(totalOI))+metric('Σ Объём',nm(totalVol))+metric('Buy/Sell','<span class="'+cls(netFlow)+'">'+nm(totalBuy)+' / '+nm(totalSell)+'</span>')+metric('Ср.Disb','<span class="'+cls(avgD)+'">'+avgD.toFixed(3)+'</span>')+'</div>';
+// Table
+const rows=ap.map(a=>{
+const vwapDiff=a.price&&a.pr_vwap?(a.price-a.pr_vwap)/a.pr_vwap:null;
+const buyPct=a.vol_b&&a.vol_s&&(a.vol_b+a.vol_s)>0?a.vol_b/(a.vol_b+a.vol_s):null;
+return[td(a.secid,'tk'),td(a.asset_group||'','nm'),
+tdr(n(a.price,4)),tdr(n(a.pr_vwap,4)),
+tdr(vwapDiff!=null?'<span class="'+cls(vwapDiff)+'">'+(vwapDiff>=0?'+':'')+n(vwapDiff*100,2)+'%</span>':'—'),
+tdr(nm(a.oi_close)),tdr(nm(a.vol)),
+tdr(nm(a.vol_b)),tdr(nm(a.vol_s)),
+tdr(buyPct!=null?'<span class="'+(buyPct>0.55?'pos':buyPct<0.45?'neg':'neu')+'">'+n(buyPct*100,0)+'%</span>':'—'),
+tdr(a.disb!=null?'<span class="'+cls(a.disb)+'">'+n(a.disb,3)+'</span>':'—'),
+tdr(n(a.spread_l1,4)),tdr(nm(a.im))];
+});
+h+=tbl([['Тикер'],['Актив'],['Цена','r'],['VWAP','r'],['Ц/VWAP','r'],['OI','r'],['Объём','r'],['Buy Vol','r'],['Sell Vol','r'],['Buy%','r'],['Disb','r'],['Спред','r'],['ГО','r']],rows,'fut-tbl');
+}
+else if(mdSub==='eq'){
+if(!window._divData&&!window._divLoading3){window._divLoading3=true;fetch('/static/dividends.json').then(r=>r.json()).then(data=>{window._divData={};data.forEach(d=>{if(!window._divData[d.ticker])window._divData[d.ticker]=d});window._divLoading3=false;renderMDContent(prev)}).catch(()=>{window._divData={};window._divLoading3=false});}
+var divMap=window._divData||{};
+var scData=d.stock_carry||[];
+var implMap={};scData.forEach(function(sc){var t=sc.spot_ticker;if(sc.div_implied&&sc.div_implied>0){if(!implMap[t]||sc.days_to_expiry>implMap[t].days)implMap[t]={div:sc.div_implied,yld:sc.div_yield,days:sc.days_to_expiry,exp:sc.expiration};}});
+const eqAll=d.equities||[];
+if(!eqAll.length){c.innerHTML='<div class="cap">Нет данных</div>';return}
+// Sector filter
+const sectors=[...new Set(eqAll.filter(e=>e.sector).map(e=>e.sector))].sort();
+if(!c.dataset.eqSector)c.dataset.eqSector='all';
+const sf=c.dataset.eqSector;
+h+='<div class="flt"><span style="color:var(--td);font-size:11px">Сектор:</span><select onchange="setEqSector(this.value)">';
+h+='<option value="all"'+(sf==='all'?' selected':'')+'>Все акции ('+eqAll.length+')</option>';
+for(const s of sectors){const cnt=eqAll.filter(e=>e.sector===s).length;h+='<option value="'+s+'"'+(sf===s?' selected':'')+'>'+s+' ('+cnt+')</option>';}
+h+='</select></div>';
+const eq=sf==='all'?eqAll:eqAll.filter(e=>e.sector===sf);
+const tv=eq.reduce((s,e)=>s+(e.valtoday||0),0);const tt=eq.reduce((s,e)=>s+(e.numtrades||0),0);
+const ad=eq.filter(e=>e.disb!=null);const avgD=ad.length?ad.reduce((s,e)=>s+e.disb,0)/ad.length:0;
+h+='<div class="mets">'+metric('Тикеров',eq.length)+metric('Оборот',vf(tv))+metric('Сделок',nm(tt))+metric('Ср.дисб','<span class="'+cls(avgD)+'">'+avgD.toFixed(3)+'</span>')+'</div>';
+const rows=eq.map(e=>{
+var dv=divMap[e.secid]||{};var im=implMap[e.secid]||{};var dd2=(window._declDiv||{})[e.secid]||[];var dclDiv=dd2.reduce(function(a,x){return a+x.div},0);var dclRec=dd2.length?dd2[0].record_date:'';
+var expDiv=dv.div||0;var expYld=dv['yield']||0;
+var imDiv=im.div||0;var imYld=im.yld?im.yld*100:0;
+return[td(e.secid,'tk'),td(e.name||'','nm'),td(e.sector||''),tdr(n(e.last,2)),
+tdr(e.change_pct!=null?'<span class="'+cls(e.change_pct)+'">'+(e.change_pct>=0?'+':'')+n(e.change_pct,2)+'%</span>':'—'),
+tdr(expDiv>0?n(expDiv,2):'—'),
+tdr(expYld>0?'<span class="pos">'+n(expYld,1)+'%</span>':'—'),
+tdr(imDiv>0?n(imDiv,2):'—'),
+tdr(imYld>0?'<span class="pos">'+n(imYld,1)+'%</span>':'—'),
+tdr(dclDiv>0?n(dclDiv,2):'—'),tdr(dclDiv>0&&e.last>0?'<span class="pos">'+n(dclDiv/e.last*100,1)+'%</span>':'—'),td(dclRec||'—'),
+tdr(vf(e.valtoday)),tdr(nm(e.numtrades)),tdr(n(e.pr_vwap,2)),
+tdr(e.disb!=null?'<span class="'+cls(e.disb)+'">'+n(e.disb,2)+'</span>':'—'),tdr(nm(e.vol_b)),tdr(nm(e.vol_s))]});
+h+=tbl([['Тикер'],['Название'],['Сектор'],['Цена','r'],['Изм%','r'],['Прогн.Див','r'],['Дох%','r'],['Impl.Див','r'],['Impl%','r'],['Объявл.','r'],['Объявл.%','r'],['Отсечка'],['Оборот','r'],['Сделки','r'],['VWAP','r'],['Disb','r'],['BuyVol','r'],['SellVol','r']],rows,'eq-tbl');
+}
+else if(mdSub==='ofz'){
+const ofz=d.ofz||[];
+if(!ofz.length){c.innerHTML='<div class="cap">Нет данных</div>';return}
+const types=[...new Set(ofz.map(o=>o.ofz_type))];
+const order=['\u041f\u0414','\u0424\u043b\u043e\u0430\u0442\u0435\u0440','\u0418\u041d','CNY'];
+const sorted=order.filter(t=>types.includes(t));
+if(!c.dataset.ofzType||!sorted.includes(c.dataset.ofzType))c.dataset.ofzType=sorted[0]||'\u041f\u0414';
+const ot=c.dataset.ofzType;
+
+h+='<div class="stabs">';
+for(const t of sorted)h+='<div class="stab'+(t===ot?' active':'')+'" onclick="setOfzType(\''+t+'\')">'+t+'</div>';
+h+='</div>';
+
+const sub=ofz.filter(o=>o.ofz_type===ot);
+const tv=sub.reduce((s,o)=>s+(o.valtoday||0),0);
+const ay=sub.filter(o=>o.yield_!=null);const avgY=ay.length?ay.reduce((s,o)=>s+o.yield_,0)/ay.length:null;
+const ad=sub.filter(o=>o.duration!=null);const avgD=ad.length?ad.reduce((s,o)=>s+o.duration,0)/ad.length:null;
+h+='<div class="mets">'+metric('\u0412\u044b\u043f\u0443\u0441\u043a\u043e\u0432',sub.length)+metric('\u041e\u0431\u043e\u0440\u043e\u0442',vf(tv))+metric('\u0421\u0440.\u0434\u043e\u0445\u043e\u0434\u043d.',avgY!=null?avgY.toFixed(2)+'%':'\u2014')+metric('\u0421\u0440.\u0434\u044e\u0440\u0430\u0446\u0438\u044f',avgD!=null?Math.round(avgD)+' \u0434\u043d':'\u2014')+'</div>';
+// === YIELD CURVE CHART === 
+var ycW=document.getElementById('ofz-yc-wrap');
+if(ot==='\u041f\u0414'){if(ycW){ycW.style.display='';setTimeout(_ldOC,50);}}
+else{if(ycW)ycW.style.display='none';}
+
+// ═══ TABLE ═══
+const rows=sub.map(o=>[td(o.shortname,'tk'),tdr(n(o.price,3)),tdr(o.yield_!=null?n(o.yield_,2):'\u2014'),tdr(o.duration||'\u2014'),tdr(n(o.coupon_value,2)),td(o.next_coupon||'\u2014'),td(o.matdate||'\u2014'),tdr(n(o.accrued_int,2)),tdr(vf(o.valtoday)),tdr(o.numtrades||'\u2014')]);
+h+=tbl([['\u0412\u044b\u043f\u0443\u0441\u043a'],['\u0426\u0435\u043d\u0430%','r'],['\u0414\u043e\u0445\u043e\u0434\u043d%','r'],['\u0414\u044e\u0440\u0430\u0446\u0438\u044f','r'],['\u041a\u0443\u043f\u043e\u043d','r'],['\u0421\u043b\u0435\u0434.\u043a\u0443\u043f'],['\u041f\u043e\u0433\u0430\u0448\u0435\u043d\u0438\u0435'],['\u041d\u041a\u0414','r'],['\u041e\u0431\u043e\u0440\u043e\u0442','r'],['\u0421\u0434\u0435\u043b\u043a\u0438','r']],rows);
+
+// Turnover - HTML bars
+const hv=sub.filter(o=>o.valtoday>0).sort((a,b)=>b.valtoday-a.valtoday);
+if(hv.length>1){
+const mx=Math.max(...hv.map(o=>o.valtoday));
+h+='<hr class="sep"><div class="sub">Оборот по выпускам</div>';
+h+='<div style="display:flex;flex-direction:column;gap:3px;margin-top:8px">';
+for(const o of hv){
+const pct=Math.max((o.valtoday/mx)*100,1);
+const val=o.valtoday>=1e9?(o.valtoday/1e9).toFixed(2)+' млрд':o.valtoday>=1e6?(o.valtoday/1e6).toFixed(1)+' млн':Math.round(o.valtoday).toLocaleString();
+h+='<div style="display:flex;align-items:center;gap:8px;font-family:JetBrains Mono,monospace;font-size:11px">';
+h+='<span style="min-width:90px;text-align:right;color:#d0d8e2;white-space:nowrap">'+(o.shortname||o.secid)+'</span>';
+h+='<div style="flex:1;background:var(--bg3);border-radius:3px;height:18px;position:relative">';
+h+='<div style="width:'+pct+'%;background:linear-gradient(90deg,#3566a8,#5b9cf6);height:100%;border-radius:3px;min-width:2px"></div>';
+h+='</div>';
+h+='<span style="min-width:80px;color:#8a9bb0;font-size:10px">'+val+'</span>';
+h+='</div>';
+}
+h+='</div>';
+}
+}
+else if(mdSub==='corp'){
+
+if(!window._corpData){
+h+='<div class="cap">Загрузка корп. облигаций...</div>';c.innerHTML=h;
+// Mobile: wrap tables in scrollable div
+if(window.innerWidth<=768){
+document.querySelectorAll('.dt').forEach(function(t){
+if(!t.parentElement.classList.contains('dt-wrap')){
+var w=document.createElement('div');w.className='dt-wrap';
+t.parentNode.insertBefore(w,t);w.appendChild(t);
+}
+});
+}
+
+fetch('/static/corp_bonds.json').then(function(r){return r.json()}).then(function(data){window._corpData=data;renderMDContent(prev)}).catch(function(){c.innerHTML='<div class="cap">Ошибка загрузки</div>'});return;
+}
+var cb=window._corpData;
+if(!cb.length){c.innerHTML='<div class="cap">Нет данных</div>';return}
+if(!c.dataset.corpLL)c.dataset.corpLL='all';if(!c.dataset.corpCur)c.dataset.corpCur='all';if(!c.dataset.corpIss)c.dataset.corpIss='all';if(!c.dataset.corpType)c.dataset.corpType='all';if(!c.dataset.corpRat)c.dataset.corpRat='all';if(!c.dataset.corpSec)c.dataset.corpSec='all';
+var fLL=c.dataset.corpLL,fCur=c.dataset.corpCur,fIss=c.dataset.corpIss,fType=c.dataset.corpType,fRat=c.dataset.corpRat,fSec=c.dataset.corpSec;
+var lls=[...new Set(cb.map(function(b){return b.listlevel}))].sort();
+var curs=[...new Set(cb.map(function(b){return b.currency}))].sort();
+var issuers=[...new Set(cb.map(function(b){return b.issuer}))].sort();
+h+='<div class="flt" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px">';
+h+='<div><span style="color:var(--td);font-size:11px">Листинг:</span> <select onchange="setCorpF(\'ll\',this.value)"><option value="all"'+(fLL==='all'?' selected':'')+'>Все</option>';
+for(var li=0;li<lls.length;li++)h+='<option value="'+lls[li]+'"'+(fLL==lls[li]?' selected':'')+'>L'+lls[li]+(lls[li]==3?' (ВДО)':'')+'</option>';
+h+='</select></div>';
+h+='<div><span style="color:var(--td);font-size:11px">Валюта:</span> <select onchange="setCorpF(\'cur\',this.value)"><option value="all"'+(fCur==='all'?' selected':'')+'>Все</option>';
+for(var ci=0;ci<curs.length;ci++)h+='<option value="'+curs[ci]+'"'+(fCur===curs[ci]?' selected':'')+'>'+curs[ci]+'</option>';
+h+='</select></div>';
+h+='<div><span style="color:var(--td);font-size:11px">Тип:</span> <select onchange="setCorpF(\'type\',this.value)"><option value="all"'+(fType==='all'?' selected':'')+'>Все</option><option value="corp"'+(fType==='corp'?' selected':'')+'>Корпоративные</option><option value="subst"'+(fType==='subst'?' selected':'')+'>Замещающие</option><option value="quasi"'+(fType==='quasi'?' selected':'')+'>Квази-гос</option><option value="sov"'+(fType==='sov'?' selected':'')+'>Суверенные</option><option value="foreign"'+(fType==='foreign'?' selected':'')+'>Иностранные</option></select></div>';
+h+='<div><span style="color:var(--td);font-size:11px">Рейтинг:</span> <select onchange="setCorpF(\'rat\',this.value)"><option value="all"'+(fRat==='all'?' selected':'')+'>Все</option><option value="AAA-AA"'+(fRat==='AAA-AA'?' selected':'')+'>AAA-AA</option><option value="A"'+(fRat==='A'?' selected':'')+'>A</option><option value="BBB"'+(fRat==='BBB'?' selected':'')+'>BBB</option><option value="BB"'+(fRat==='BB'?' selected':'')+'>BB</option><option value="B-"'+(fRat==='B-'?' selected':'')+'>B- (ВДО)</option></select></div>';
+h+='<div><span style="color:var(--td);font-size:11px">Сектор:</span> <select onchange="setCorpF(\'sec\',this.value)"><option value="all"'+(fSec==='all'?' selected':'')+'>Все</option>';
+var sects={};cb.forEach(function(b){if(b.sector)sects[b.sector]=1});
+Object.keys(sects).sort().forEach(function(s){h+='<option value="'+s+'"'+(fSec===s?' selected':'')+'>'+s+'</option>';});
+h+='</select></div>';
+h+='<div><span style="color:var(--td);font-size:11px">Эмитент:</span> <select onchange="setCorpF(\'iss\',this.value)"><option value="all"'+(fIss==='all'?' selected':'')+'>Все ('+issuers.length+')</option>';
+for(var ii=0;ii<Math.min(issuers.length,150);ii++)h+='<option value="'+issuers[ii]+'"'+(fIss===issuers[ii]?' selected':'')+'>'+issuers[ii]+'</option>';
+h+='</select></div></div>';
+var fb=cb;
+if(fLL!=='all')fb=fb.filter(function(b){return b.listlevel==fLL});
+if(fCur!=='all')fb=fb.filter(function(b){return b.currency===fCur});
+if(fIss!=='all')fb=fb.filter(function(b){return b.issuer===fIss});
+if(fType!=='all')fb=fb.filter(function(b){return b.type===fType});
+if(fRat!=='all')fb=fb.filter(function(b){return b.rating===fRat});
+if(fSec!=='all')fb=fb.filter(function(b){return b.sector===fSec});
+var tv=fb.reduce(function(s,b){return s+(b.valtoday||0)},0);
+var ay=fb.filter(function(b){return b.ytm>0});var avgY=ay.length?ay.reduce(function(s,b){return s+b.ytm},0)/ay.length:0;
+var adur=fb.filter(function(b){return b.duration>0});var avgD=adur.length?adur.reduce(function(s,b){return s+b.duration},0)/adur.length:0;
+h+='<div class="mets">'+metric('Бумаг',fb.length)+metric('Оборот',vf(tv))+metric('Ср.YTM',avgY>0?avgY.toFixed(2)+'%':'\u2014')+metric('Ср.дюрация',avgD>0?(avgD/365).toFixed(1)+' лет':'\u2014')+metric('L1',fb.filter(function(b){return b.listlevel==1}).length)+metric('L3/ВДО',fb.filter(function(b){return b.listlevel==3}).length)+'</div>';
+var ytmD=fb.filter(function(b){return b.ytm>0&&b.duration>0}).sort(function(a,b){return a.duration-b.duration});
+if(ytmD.length>=5){
+h+='<div class="sub">Доходность vs Дюрация</div><div id="corp-yc" class="chart-center" style="height:400px"></div>';
+}
+var rows=fb.map(function(b){return[td(b.name,'tk'),td(b.rating||'\u2014'),td('L'+b.listlevel),td(b.currency),tdr(n(b.price,2)),tdr(b.ytm>0?n(b.ytm,2)+'%':'\u2014'),tdr(b.type==='subst'||b.type==='sov'?'\u2014':b.ofz_ytm>0?n(b.ofz_ytm,2)+'%':'\u2014'),tdr(b.type==='subst'||b.type==='sov'?'\u2014':b.g_spread>0?'+'+n(b.g_spread,2)+'%':b.g_spread<0?n(b.g_spread,2)+'%':'\u2014'),tdr(b.duration>0?(b.duration/365).toFixed(1)+'г':'\u2014'),tdr(n(b.coupon,2)+'%'),td(b.matdate||'\u2014'),tdr(vf(b.valtoday)),tdr(vf(b.avg_valtoday_22d||0)),tdr(b.numtrades)]});
+h+=tbl([['Выпуск'],['Рейт.*'],['Лист.'],['Вал.'],['Цена%','r'],['YTM%','r'],['ОФЗ%','r'],['G-Спред','r'],['Дюр.лет','r'],['Купон','r'],['Погашение'],['Оборот','r'],['Ср.об.22д','r'],['Сделки','r']],rows);h+='<div style="color:var(--td);font-size:10px;opacity:0.6;margin:4px 0">* Расчётный рейтинг по G-спреду к кривой ОФЗ: AAA-AA <1%, A 1-2%, BBB 2-3.5%, BB 3.5-6%, B- >6%</div>';
+if(ytmD.length>=5){
+setTimeout(function(){var el=document.getElementById('corp-yc');if(!el||el.dataset.drawn)return;el.dataset.drawn='1';var colors=ytmD.map(function(b){return b.listlevel==1?'#3b82f6':b.listlevel==2?'#fcc73e':'#ff5a6a'});Plotly.react('corp-yc',[{x:ytmD.map(function(b){return(b.duration/365).toFixed(1)}),y:ytmD.map(function(b){return b.ytm}),mode:'markers',text:ytmD.map(function(b){return b.name}),marker:{size:8,color:colors,opacity:0.7},hovertemplate:'%{text}<br>Дюр: %{x} дн<br>YTM: %{y:.2f}%<extra></extra>'}],{...PLT,height:380,xaxis:{...PLT.xaxis,title:'Дюрация (лет)'},yaxis:{...PLT.yaxis,ticksuffix:'%',title:'YTM, %'},shapes:[{type:'line',x0:0,x1:1,xref:'paper',y0:KR*100,y1:KR*100,line:{dash:'dash',color:'#CC0000'}}],annotations:[{x:1,xref:'paper',y:KR*100,text:'КС '+(KR*100).toFixed(1)+'%',showarrow:false,font:{color:'#CC0000'}}]},{responsive:true,displayModeBar:false});},100);
+}
+
+}
+else if(mdSub==='cal'){
+var _ct=window._calType||'all',_cp=window._calPeriod||'30',_cs=window._calSearch||'';
+h='<div style="margin:8px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">';
+h+='<select id="cal-type" onchange="window._calType=this.value;drawCalendar()" style="background:var(--bg2);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-size:12px">';
+var _ctOpts=[['all','Все события'],['dividend','💰 Дивиденды'],['coupon','🎫 Купоны'],['maturity','📌 Погашения'],['expiration','⏰ Экспирации'],['cbr','🏛️ ЦБ РФ']];
+_ctOpts.forEach(function(o){h+='<option value="'+o[0]+'"'+(_ct===o[0]?' selected':'')+'>'+o[1]+'</option>';});
+h+='</select>';
+h+='<select id="cal-period" onchange="window._calPeriod=this.value;drawCalendar()" style="background:var(--bg2);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-size:12px">';
+var _cpOpts=[['7','7 дней'],['14','14 дней'],['30','30 дней'],['90','90 дней'],['180','180 дней']];
+_cpOpts.forEach(function(o){h+='<option value="'+o[0]+'"'+(_cp===o[0]?' selected':'')+'>'+o[1]+'</option>';});
+h+='</select>';
+h+='<input id="cal-search" value="'+_cs.replace(/"/g,'&quot;')+'" oninput="window._calSearch=this.value;drawCalendar()" placeholder="Поиск тикера..." style="background:var(--bg2);color:var(--text);border:1px solid var(--border);padding:5px 10px;border-radius:4px;font-size:12px;width:140px">';
+h+='<span id="cal-info" style="color:var(--td);font-size:10px"></span></div>';
+h+='<div id="cal-content"><div class="cap">Загрузка...</div></div>';
+}
+c.innerHTML=h;c.dataset.currentTab=mdSub;
+if(mdSub==='cal'){renderCalendar();}
+}
+
+
+
+
+
+
+function openChartFS(id){
+  var src=document.getElementById(id);if(!src)return;
+  var plot=src.querySelector('.js-plotly-plot');if(!plot)return;
+  var overlay=document.getElementById('chart-overlay');
+  var target=document.getElementById('chart-overlay-plot');
+  overlay.dataset.src=id;
+  overlay.style.display='flex';
+  document.body.style.overflow='hidden';
+  var data=JSON.parse(JSON.stringify(plot.data));
+  var layout=JSON.parse(JSON.stringify(plot.layout));
+  var isMob=window.innerWidth<768;
+  layout.height=window.innerHeight-60;
+  layout.width=window.innerWidth-20;
+  layout.margin={l:isMob?40:60,r:isMob?40:60,t:isMob?30:50,b:isMob?40:60};
+  layout.font={size:isMob?9:12,color:'#e2e8f0'};
+  if(layout.title&&layout.title.font)layout.title.font.size=isMob?12:16;
+  if(layout.legend){layout.legend.font={size:isMob?8:11,color:'#94a3b8'};layout.legend.y=isMob?1.12:1.05;}
+  if(layout.xaxis){layout.xaxis.tickfont={size:isMob?8:11,color:'#94a3b8'};}
+  if(layout.yaxis){layout.yaxis.tickfont={size:isMob?8:11,color:'#94a3b8'};}
+  if(layout.yaxis2){layout.yaxis2.tickfont={size:isMob?8:11,color:'#94a3b8'};}
+  if(layout.xaxis&&layout.xaxis.title)layout.xaxis.title.font={size:isMob?9:12,color:'#94a3b8'};
+  if(layout.yaxis&&layout.yaxis.title)layout.yaxis.title.font={size:isMob?9:12,color:'#94a3b8'};
+  Plotly.newPlot('chart-overlay-plot',data,layout,{responsive:true,displayModeBar:false});
+}
+function closeChartFS(){
+  var overlay=document.getElementById('chart-overlay');
+  overlay.style.display='none';
+  document.body.style.overflow='';
+  Plotly.purge('chart-overlay-plot');
+}
+function addFSBtn(id){
+  var el=document.getElementById(id);if(!el||document.getElementById(id+'-fswrap'))return;
+  var wrap=document.createElement('div');
+  wrap.id=id+'-fswrap';
+  wrap.style.cssText='position:relative;display:inline-block;width:100%';
+  el.parentNode.insertBefore(wrap,el);
+  wrap.appendChild(el);
+  var b=document.createElement('div');b.className='chart-fs-btn';b.textContent='⛶';
+  b.onclick=function(e){e.stopPropagation();e.preventDefault();openChartFS(id);};
+  wrap.appendChild(b);
+}
+// ═══ CALENDAR ═══
+var _calData=null,_calLoading=false;
+function renderCalendar(){
+  if(_calData){drawCalendar();return;}
+  if(_calLoading)return;
+  _calLoading=true;
+  var el=$('cal-content');if(el)el.innerHTML='<div class="cap">Загрузка календаря...</div>';
+  fetch('/api/calendar').then(r=>r.json()).then(d=>{
+    _calData=d;_calLoading=false;drawCalendar();
+    var info=$('cal-info');
+    if(info&&d.updated)info.textContent='Обновлено: '+d.updated+' | '+d.total+' событий';
+  }).catch(e=>{_calLoading=false;var el=$('cal-content');if(el)el.innerHTML='<div class="cap">Ошибка: '+e+'</div>';});
+}
+function drawCalendar(){
+  if(!_calData||!_calData.events)return;
+  var evts=_calData.events;
+  var typeF=window._calType||($('cal-type')?$('cal-type').value:'all');
+  var days=parseInt(window._calPeriod||($('cal-period')?$('cal-period').value:'30'));
+  var search=(window._calSearch||($('cal-search')?$('cal-search').value:'')).toUpperCase();
+  var today=new Date();
+  var cutoff=new Date(today.getTime()+days*86400000).toISOString().slice(0,10);
+  var todayStr=today.toISOString().slice(0,10);
+  var monthNames=['Января','Февраля','Марта','Апреля','Мая','Июня','Июля','Августа','Сентября','Октября','Ноября','Декабря'];
+  var dowNames=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  var typeIcons={dividend:'💰',coupon:'🎫',maturity:'📌',expiration:'⏰',cbr:'🏛️'};
+  var typeColors={dividend:'#2ee67a',coupon:'#5b9cf6',maturity:'#ff9800',expiration:'#ff5a6a',cbr:'#fcc73e'};
+  var typeNames={dividend:'Дивиденды',coupon:'Купоны',maturity:'Погашения',expiration:'Экспирации',cbr:'ЦБ РФ'};
+
+  var filtered=evts.filter(function(e){
+    if(e.date<todayStr||e.date>cutoff)return false;
+    if(typeF!=='all'&&e.type!==typeF)return false;
+    if(search&&e.ticker.toUpperCase().indexOf(search)===-1&&(e.name||'').toUpperCase().indexOf(search)===-1)return false;
+    return true;
+  });
+
+  var counts={};filtered.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});
+  var h='<div class="mets">';
+  h+=metric('Всего',filtered.length);
+  for(var tp in typeNames){if(counts[tp])h+=metric(typeNames[tp],'<span style="color:'+typeColors[tp]+'">'+counts[tp]+'</span>');}
+  h+='</div>';
+
+  var byDate={};
+  filtered.forEach(function(e){if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+  var dates=Object.keys(byDate).sort();
+
+  if(!dates.length){h+='<div class="cap">Нет событий за выбранный период</div>';$('cal-content').innerHTML=h;return;}
+
+  for(var di=0;di<dates.length;di++){
+    var dt=dates[di];
+    var dayEvts=byDate[dt];
+    var dp=new Date(dt+'T00:00:00');
+    var dayNum=dp.getDate();
+    var monthStr=monthNames[dp.getMonth()];
+    var dowStr=dowNames[dp.getDay()];
+    var isToday=dt===todayStr;
+
+    // Group events by type within day
+    var byType={};
+    dayEvts.forEach(function(e){if(!byType[e.type])byType[e.type]=[];byType[e.type].push(e);});
+
+    h+='<div style="display:flex;gap:0;margin-top:16px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">';
+
+    // Left: date block
+    h+='<div style="min-width:80px;padding:12px 8px;background:'+(isToday?'rgba(46,230,122,0.15)':'var(--bg2)')+';display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border)">';
+    h+='<div style="font-size:28px;font-weight:700;color:'+(isToday?'#2ee67a':'var(--text)')+';line-height:1">'+dayNum+'</div>';
+    h+='<div style="font-size:11px;color:'+(isToday?'#2ee67a':'var(--td)')+';margin-top:2px">'+monthStr+'</div>';
+    h+='<div style="font-size:9px;color:var(--td);margin-top:1px">'+dowStr+'</div>';
+    if(isToday)h+='<div style="font-size:8px;color:#2ee67a;margin-top:3px;font-weight:600">СЕГОДНЯ</div>';
+    h+='</div>';
+
+    // Right: events
+    h+='<div style="flex:1;padding:8px 12px;background:var(--bg1)">';
+
+    var typeOrder=['cbr','dividend','expiration','maturity','coupon'];
+    for(var ti=0;ti<typeOrder.length;ti++){
+      var tp=typeOrder[ti];
+      if(!byType[tp])continue;
+      var items=byType[tp].sort(function(a,b){return(b.value||0)-(a.value||0);});
+
+      h+='<div style="margin-bottom:8px">';
+      h+='<div style="font-size:11px;font-weight:600;color:'+typeColors[tp]+';margin-bottom:4px">'+typeNames[tp]+'</div>';
+
+      for(var ei=0;ei<items.length;ei++){
+        var e=items[ei];
+        h+='<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px">';
+        h+='<span style="font-size:14px">'+typeIcons[tp]+'</span>';
+        h+='<span style="color:var(--text);min-width:60px;font-weight:500">'+e.ticker+'</span>';
+        h+='<span style="flex:1;color:var(--td);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(e.name||'')+'</span>';
+
+        if(tp==='coupon'){
+          h+='<span style="color:var(--td);font-size:10px;min-width:90px;text-align:right">';
+          if(e.coupon_pct)h+='доходность '+n(e.coupon_pct,2)+'%';
+          h+='</span>';
+          h+='<span style="color:'+typeColors[tp]+';font-weight:600;min-width:60px;text-align:right">'+n(e.value,2)+' ₽</span>';
+        } else if(tp==='dividend'){
+          h+='<span style="color:var(--td);font-size:10px;min-width:90px;text-align:right">';
+          if(e.yield_pct)h+='доходность '+n(e.yield_pct,2)+'%';
+          h+='</span>';
+          h+='<span style="color:'+typeColors[tp]+';font-weight:600;min-width:60px;text-align:right">'+n(e.value,2)+' ₽</span>';
+        } else if(tp==='maturity'){
+          h+='<span style="color:'+typeColors[tp]+';font-size:10px;min-width:60px;text-align:right">погашение</span>';
+        } else if(tp==='expiration'){
+          h+='<span style="color:'+typeColors[tp]+';font-size:10px;min-width:60px;text-align:right">экспирация</span>';
+        } else if(tp==='cbr'){
+          h+='<span style="color:'+typeColors[tp]+';font-size:10px;text-align:right">решение по ставке</span>';
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    h+='</div></div>';
+  }
+  var el=$('cal-content');if(el)el.innerHTML=h;
+}
+// Фильтры
+
+
+
+// ═══ FUNDS — ПИФ Скринер ═══
+var _fundsData=null,_fundsLoading=false;
+var _fundsSub='all',_fundsCat='all',_fundsSearch='',_fundsSort='return_1y',_fundsSortDir=-1,_fundsHeatPeriod='return_1y',_fundsHeatType='all';
+
+function renderFunds(){
+  var st=$('funds-st');
+  if(!st.dataset.init){
+    var tabs=[['all','Все'],['БПИФ','БПИФ'],['ОПИФ','ОПИФ'],['ИПИФ','ИПИФ'],['ЗПИФ','ЗПИФ'],['heatmap','Heatmap']];
+    st.innerHTML=tabs.map(function(t){return '<div class="stab'+(t[0]===_fundsSub?' active':'')+'" data-fs="'+t[0]+'">'+t[1]+'</div>';}).join('');
+    st.querySelectorAll('.stab').forEach(function(el){el.onclick=function(){
+      _fundsSub=el.dataset.fs;
+      st.querySelectorAll('.stab').forEach(function(s){s.classList.toggle('active',s.dataset.fs===_fundsSub);});
+      drawFunds();
+    };});
+    st.dataset.init='1';
+    $('funds-cat').onchange=function(){_fundsCat=this.value;drawFunds();};
+    $('funds-search').oninput=function(){_fundsSearch=this.value.toUpperCase();drawFunds();};
+  }
+  if(_fundsData){drawFunds();return;}
+  if(_fundsLoading)return;
+  _fundsLoading=true;
+  $('funds-content').innerHTML='<div class="cap">Загрузка фондов...</div>';
+  fetch('/api/rankings?limit=3000&sort_by=return_1y').then(function(r){return r.json()}).then(function(d){
+    _fundsData=Array.isArray(d)?d:(d.data||d.results||[]);_fundsLoading=false;drawFunds();
+  }).catch(function(e){_fundsLoading=false;$('funds-content').innerHTML='<div class="cap">Ошибка: '+e+'</div>';});
+}
+
+function _fSortClick(field){
+  if(_fundsSort===field)_fundsSortDir*=-1;
+  else{_fundsSort=field;_fundsSortDir=-1;}
+  drawFunds();
+}
+window._fSortClick=_fSortClick;
+
+function _fTypeBadge(t){
+  var c={'БПИФ':'#3b82f6','ОПИФ':'#2ee67a','ИПИФ':'#ff9800','ЗПИФ':'#9c27b0'};
+  return '<span style="background:'+(c[t]||'#555')+';color:#fff;padding:1px 5px;border-radius:3px;font-size:10px">'+t+'</span>';
+}
+
+function _fRet(v){
+  if(v===null||v===undefined)return '<span style="color:var(--td)">—</span>';
+  var color=v>0?'#2ee67a':v<0?'#ff5a6a':'var(--td)';
+  return '<span style="color:'+color+'">'+(v>0?'+':'')+n(v,2)+'%</span>';
+}
+
+function _fNav(v){
+  if(!v)return '—';
+  var m=v/1e6;
+  if(m>=1000)return n(m/1000,1)+' млрд';
+  if(m>=1)return n(m,0)+' млн';
+  return n(v,0);
+}
+
+function _fFlow(v){
+  if(!v)return '<span style="color:var(--td)">—</span>';
+  var color=v>0?'#2ee67a':'#ff5a6a';
+  if(Math.abs(v)>=1000)return '<span style="color:'+color+'">'+(v>0?'+':'')+n(v/1000,1)+' млрд</span>';
+  return '<span style="color:'+color+'">'+(v>0?'+':'')+n(v,0)+' млн</span>';
+}
+
+function drawFunds(){
+  if(!_fundsData)return;
+  var data=_fundsData;
+
+  // Filter
+  var filtered=data.filter(function(f){
+    if(_fundsSub!=='all'&&_fundsSub!=='heatmap'&&f.fund_type!==_fundsSub)return false;
+    if(_fundsCat!=='all'&&f.category!==_fundsCat)return false;
+    if(_fundsSearch){
+      var s=_fundsSearch;
+      var tk=(f.ticker||'').toUpperCase();
+      var nm=(f.name||'').toUpperCase();
+      var uk=(f.management_company||'').toUpperCase();
+      if(tk.indexOf(s)===-1&&nm.indexOf(s)===-1&&uk.indexOf(s)===-1)return false;
+    }
+    return true;
+  });
+
+  // Sort
+  filtered.sort(function(a,b){
+    var va=a[_fundsSort],vb=b[_fundsSort];
+    if(va===null||va===undefined)va=-9999999;
+    if(vb===null||vb===undefined)vb=-9999999;
+    return (vb-va)*_fundsSortDir*-1;
+  });
+
+  var info=$('funds-info');
+  if(info)info.textContent=filtered.length+' фондов из '+data.length;
+
+  // Heatmap mode
+  if(_fundsSub==='heatmap'){
+    drawFundsHeatmap(filtered);
+    return;
+  }
+
+  // Table
+  var sortIcon=function(f){return _fundsSort===f?(_fundsSortDir>0?' ▲':' ▼'):'';};
+  var h='<table class="dt"><thead><tr>';
+  var cols=[
+    ['#',''],['Тикер',''],['Фонд',''],['Тип',''],['Категория',''],['УК',''],
+    ['1M%','return_1m'],['3M%','return_3m'],['YTD%','return_ytd'],['1Y%','return_1y'],['3Y%','return_3y'],
+    ['Потоки 1Y','flow_1y'],['СЧА','nav'],['TER%','management_fee']
+  ];
+  cols.forEach(function(c){
+    if(c[1]){
+      h+='<th class="r" style="cursor:pointer;white-space:nowrap" onclick="_fSortClick(\x27'+c[1]+'\x27)">'+c[0]+sortIcon(c[1])+'</th>';
+    } else {
+      h+='<th>'+c[0]+'</th>';
+    }
+  });
+  h+='</tr></thead><tbody>';
+
+  var max=Math.min(filtered.length,500);
+  for(var i=0;i<max;i++){
+    var f=filtered[i];
+    h+='<tr>';
+    h+='<td style="color:var(--td)">'+(i+1)+'</td>';
+    h+='<td class="tk">'+(f.ticker||'—')+'</td>';
+    h+='<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(f.name||'')+'</td>';
+    h+='<td>'+_fTypeBadge(f.fund_type||'')+'</td>';
+    h+='<td style="font-size:10px;color:var(--td)">'+(f.category||'')+'</td>';
+    h+='<td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--td)">'+(f.management_company||'')+'</td>';
+    h+='<td class="r">'+_fRet(f.return_1m)+'</td>';
+    h+='<td class="r">'+_fRet(f.return_3m)+'</td>';
+    h+='<td class="r">'+_fRet(f.return_ytd)+'</td>';
+    h+='<td class="r">'+_fRet(f.return_1y)+'</td>';
+    h+='<td class="r">'+_fRet(f.return_3y)+'</td>';
+    h+='<td class="r">'+_fFlow(f.flow_1y)+'</td>';
+    h+='<td class="r">'+_fNav(f.nav)+'</td>';
+    h+='<td class="r">'+(f.management_fee?n(f.management_fee,2)+'%':'—')+'</td>';
+    h+='</tr>';
+  }
+  h+='</tbody></table>';
+  if(filtered.length>500)h+='<div class="cap">Показано 500 из '+filtered.length+'</div>';
+  $('funds-content').innerHTML=h;
+}
+
+function drawFundsHeatmap(data){
+  var periods=[['return_1m','1M'],['return_3m','3M'],['return_ytd','YTD'],['return_1y','1Y'],['return_3y','3Y']];
+  var h='<div style="display:flex;gap:4px;margin:8px 0">';
+  periods.forEach(function(p){
+    var active=_fundsHeatPeriod===p[0];
+    h+='<div onclick="_fundsHeatPeriod=\''+p[0]+'\';drawFunds()" style="padding:4px 12px;border-radius:4px;font-size:11px;cursor:pointer;'+(active?'background:#5b9cf6;color:#fff':'background:var(--bg2);color:var(--td)')+'">'+p[1]+'</div>';
+  });
+  h+='</div>';
+  var htypes=[['all','Все'],['БПИФ','БПИФ'],['ОПИФ','ОПИФ'],['ИПИФ','ИПИФ'],['ЗПИФ','ЗПИФ']];
+  h+='<div style="display:flex;gap:4px;margin:0 0 8px 0">';
+  htypes.forEach(function(t){
+    var active=_fundsHeatType===t[0];
+    h+='<div onclick="_fundsHeatType=\''+t[0]+'\';drawFunds()" style="padding:4px 12px;border-radius:4px;font-size:11px;cursor:pointer;'+(active?'background:#2ee67a;color:#000':'background:var(--bg2);color:var(--td)')+'">'+t[1]+'</div>';
+  });
+  h+='</div>';
+  // Top 100 by NAV
+  var sorted=data.filter(function(f){if(!f.nav||f.nav<=0)return false;if(_fundsHeatType==='no_zpif')return f.fund_type!=='ЗПИФ';if(_fundsHeatType==='all')return true;return f.fund_type===_fundsHeatType;}).sort(function(a,b){return(b.nav||0)-(a.nav||0);}).slice(0,100);
+  h+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin:8px 0">';
+  sorted.forEach(function(f){
+    var ret=f[_fundsHeatPeriod]||0;
+    var r=Math.min(Math.max(ret,-30),60);
+    var hue=r>0?120*(Math.min(r,60)/60):0;
+    var sat=r>0?'70%':'70%';
+    var light=r>0?'35%':(25+Math.min(Math.abs(r),30))+'%';
+    var bg=r>=0?'hsl('+hue+','+sat+','+light+')':'hsl(0,70%,'+light+')';
+    var navM=(f.nav/1e6);
+    var size=Math.max(60,Math.min(120,40+Math.sqrt(navM)*2));
+    h+='<div style="width:'+size+'px;height:'+size+'px;background:'+bg+';border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;overflow:hidden;cursor:default" title="'+(f.name||'')+' | NAV: '+_fNav(f.nav)+' | '+(ret>0?'+':'')+n(ret,1)+'%">';
+    h+='<div style="font-size:8px;color:rgba(255,255,255,0.7);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">'+(f.ticker||f.fund_type||'')+'</div>';
+    h+='<div style="font-size:7px;color:rgba(255,255,255,0.5);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;margin-top:1px">'+((f.name||'').length>20?(f.name||'').substring(0,20)+'…':(f.name||''))+'</div>';
+    h+='<div style="font-size:11px;font-weight:700;color:#fff">'+(ret>0?'+':'')+n(ret,1)+'%</div>';
+    h+='<div style="font-size:8px;color:rgba(255,255,255,0.7)">'+_fNav(f.nav)+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  $('funds-content').innerHTML=h;
+}
+
+
+// ═══ OFZ Yield Curve — like _drCC ═══
+var _ocD={'0':true};
+var _ocN={'0':'Today','7':'-1W','30':'-1M','90':'-3M','180':'-6M','365':'-1Y'};
+var _ocC=['#00c853','#ff9800','#9c27b0','#00bcd4','#f44336'];
+window._togOCD=function(el){
+var k=el.getAttribute('data-ocd');
+if(k==='0'){_ocD={'0':true};var bs=document.querySelectorAll('[data-ocd]');for(var i=0;i<bs.length;i++)bs[i].classList.remove('active');el.classList.add('active')}
+else{if(_ocD[k]){delete _ocD[k];el.classList.remove('active')}else{_ocD[k]=true;el.classList.add('active')}
+if(!_ocD['0']){_ocD['0']=true;document.querySelector('[data-ocd="0"]').classList.add('active')}}
+_ldOC();
+};
+var _ocHist={};var _ocHistDates='';
+function _ldOC(){
+var el=document.getElementById('ofz-yc');if(!el)return;
+var dd=[];var keys=Object.keys(_ocD);
+for(var i=0;i<keys.length;i++){
+var k=keys[i];if(k!=='0'){var dt=new Date();dt.setDate(dt.getDate()-parseInt(k));dd.push(dt.toISOString().slice(0,10))}
+}
+var dstr=dd.join(',');
+var url='/api/ofz_curve';
+if(dstr)url+='?dates='+dstr;
+fetch(url).then(function(r){return r.json()}).then(function(data){_drOC(data)}).catch(function(e){console.error('OFZ curve:',e)});
+}
+function _drOC(data){
+var el=document.getElementById('ofz-yc');if(!el)return;
+var cv=[];var ak=[];
+['0','7','30','90','180','365'].forEach(function(k){if(_ocD[k])ak.push(k)});
+// Build curves array: first=today, rest=historical
+var todayPts=data['today']||[];
+if(todayPts.length)cv.push({label:'Today',actual:'today',points:todayPts});
+var hkeys=Object.keys(data).filter(function(k){return k!=='today'&&k.charAt(0)!=='_'}).sort().reverse();
+for(var i=0;i<hkeys.length;i++){cv.push({label:hkeys[i],actual:hkeys[i],points:data[hkeys[i]]||[]})}
+if(!cv.length||!cv[0].points.length){el.innerHTML='<div class="cap">No data</div>';return}
+var tr=[];
+for(var i=0;i<cv.length;i++){
+var c=cv[i],p=c.points;if(!p.length)continue;
+var lb=c.actual;if(i===0)lb='Today';
+var cl=_ocC[i%5],f=i===0;
+tr.push({x:p.map(function(v){return Math.round(v.duration/365*10)/10}),y:p.map(function(v){return v.yield}),
+name:lb,mode:'lines+markers'+(f?'+text':''),
+text:f?p.map(function(v){return v.shortname||''}):null,textposition:'top center',textfont:{size:8,color:'#6b7a8d'},
+line:{color:cl,width:f?2.5:1.5,dash:f?'solid':'dot'},
+marker:{size:f?7:4},hovertemplate:'%{x} лет<br>%{y:.2f}%<extra>'+lb+'</extra>'});
+}
+// Change bars if exactly 2 curves
+var hasBar=false;
+if(cv.length===2&&cv[0].points.length&&cv[1].points.length){
+var t0=cv[0].points,cmp=cv[1].points;
+var cm={};cmp.forEach(function(v){cm[v.duration]=v.yield});
+var bx=[],by=[],bt=[],bc=[];
+t0.forEach(function(v){
+var closest=null,minD=9999;
+var p_dur=v.duration;for(var dd in cm){var dist=Math.abs(parseInt(dd)-p_dur);if(dist<minD){minD=dist;closest=dd}}
+if(closest&&minD<60){
+var ch=Math.round((v.yield-cm[closest])*100);
+bx.push(Math.round(v.duration/365*10)/10);by.push(ch);bt.push((ch>=0?'+':'')+ch);
+bc.push(ch>=0?'rgba(239,83,80,0.7)':'rgba(46,230,122,0.7)');}
+});
+if(bx.length){hasBar=true;
+tr.push({x:bx,y:by,name:'Chg vs '+cv[1].actual+' (bps)',type:'bar',
+text:bt,textposition:'outside',textfont:{size:10,color:'#d0d8e2',family:'JetBrains Mono'},
+marker:{color:bc,line:{color:bc.map(function(c){return c.replace('0.6','1')}),width:1}},
+yaxis:'y2',
+hovertemplate:'%{x} лет: %{y:+d} bps<extra></extra>'});}
+}
+// KS line
+var shapes=[],annotations=[];
+var ymin=1e18,ymax=-1e18;
+cv.forEach(function(c){c.points.forEach(function(p){if(p.yield<ymin)ymin=p.yield;if(p.yield>ymax)ymax=p.yield})});
+var pad=(ymax-ymin)*0.15||1;
+Plotly.react('ofz-yc',tr,Object.assign({},PLT,{height:532,
+title:{text:'\u041e\u0424\u0417-\u041f\u0414 \u2014 Yield Curve',font:{size:14,color:'#e2e8f0'}},
+xaxis:Object.assign({},PLT.xaxis,{title:'\u0414\u044e\u0440\u0430\u0446\u0438\u044f (\u043b\u0435\u0442)'}),
+yaxis:Object.assign({},PLT.yaxis,{title:'\u0414\u043e\u0445\u043e\u0434\u043d\u043e\u0441\u0442\u044c, %',ticksuffix:'%',range:[ymin-pad,ymax+pad],domain:hasBar?[0.22,1]:[0,1]}),
+yaxis2:hasBar?{domain:[0,0.2],showgrid:false,zeroline:true,zerolinecolor:'rgba(255,255,255,0.2)',zerolinewidth:1,
+title:{text:'\u0418\u0437\u043c. (bps)',font:{color:'#9aacbf',size:10}},tickfont:{color:'#9aacbf',size:9},
+gridcolor:'rgba(255,255,255,0.05)'}:{visible:false},
+shapes:shapes,annotations:annotations,
+legend:{orientation:'v',y:0.98,x:0.99,xanchor:'right',yanchor:'top',bgcolor:'rgba(10,14,23,0.7)',bordercolor:'rgba(255,255,255,0.1)',borderwidth:1,font:{size:9,color:'#94a3b8'}},
+margin:{t:60,b:60,l:60,r:40},hovermode:'x unified',barmode:'relative'}),
+{responsive:true,displayModeBar:false});
+addFSBtn('ofz-yc-wrap');
+}
+
+window.setOfzType=function(t){window._ocLoaded=false;
+const c=$('md-content');c.dataset.ofzType=t;renderMDContent(prev);
+};
+window.setEqSector=function(v){
+const c=$('md-content');c.dataset.eqSector=v;renderMDContent(prev);
+};
+window.setFutCat=function(v){
+const c=$('md-content');c.dataset.futCat=v;renderMDContent(prev);
+};
+
+
+window.setCorpF=function(type,val){$('md-content').dataset.currentTab='';
+var c=$('md-content');
+if(type==='ll')c.dataset.corpLL=val;
+if(type==='cur')c.dataset.corpCur=val;
+if(type==='iss')c.dataset.corpIss=val;
+if(type==='type')c.dataset.corpType=val;
+if(type==='rat')c.dataset.corpRat=val;
+if(type==='sec')c.dataset.corpSec=val;
+renderMDContent(prev);
+};
+// ═══════ СТРАТЕГИИ ═══════
+let stratSub='pref',btData=null,btMode='a',btHidden={};
+const stratTabs=[['pref','Преф/Обычка'],['sector','Сектор Ротация'],['mom','Momentum'],['div','Дивиденды']];
+const BTC={'SBER/P':{l:'#3b82f6',f:'rgba(59,130,246,.08)',n:'Сбербанк'},'TATN/P':{l:'#f59e0b',f:'rgba(245,158,11,.08)',n:'Татнефть'},'RTKM/P':{l:'#10b981',f:'rgba(16,185,129,.08)',n:'Ростелеком'},'Portfolio':{l:'#e2e8f0',f:'rgba(226,232,240,.06)',n:'Портфель'}};
+
+function renderStrat(d){
+var st=$('strat-st');
+if(!st.dataset.init){
+st.innerHTML=stratTabs.map(function(t){return'<div class="stab'+(t[0]===stratSub?' active':'')+'" data-s="'+t[0]+'">'+t[1]+'</div>'}).join('');
+st.querySelectorAll('.stab').forEach(function(el){el.onclick=function(){stratSub=el.dataset.s;st.querySelectorAll('.stab').forEach(function(s){s.classList.toggle('active',s.dataset.s===stratSub)});renderStratBody(prev)}});
+st.dataset.init='1';}
+renderStratBody(d);
+}
+
+function renderStratBody(d){
+var c=$('strat-body');var h='';
+if(stratSub==='pref') h=renderPref(d);
+else if(stratSub==='sector') h=renderSector(d);
+else if(stratSub==='mom') h=renderMom(d);
+else if(stratSub==='div') h=renderDiv(d);
+
+c.innerHTML=h;
+if(stratSub==='pref'&&!btData){fetch('/static/backtest_data.json').then(function(r){return r.json()}).then(function(j){btData=j;renderBtStats();drawBt()}).catch(function(){});}
+if(stratSub==='pref'&&btData){renderBtStats();drawBt();}
+}
+
+function renderPref(d){
+var sig=d.pref_signals||[];
+var h='<div class="sub">Mean Reversion: Преф/Обычка</div>';
+h+='<div class="cap">Lookback=60d | Entry=\u00b12\u03c3 | Exit=0\u03c3 | Pair trade: long cheap / short expensive</div>';
+if(sig.length){
+var rows=sig.map(function(s){
+var zc=Math.abs(s.zscore)>=2?(s.zscore>0?'bg-neg':'bg-pos'):(Math.abs(s.zscore)>=1.5?'bg-neu':'');
+var dev=s.ratio-s.mean;var devPct=s.mean>0?(dev/s.mean*100):0;
+var sig_text='\u2014';var sc='muted';
+if(s.zscore>=2){sig_text='Short '+s.pref+' / Long '+s.common;sc='neg'}
+else if(s.zscore<=-2){sig_text='Long '+s.pref+' / Short '+s.common;sc='pos'}
+else{sig_text='Flat';sc='muted'}
+return[td(s.name,'tk'),tdr(n(s.common_price,2)),tdr(n(s.pref_price,2)),tdr(n(s.ratio,4)),tdr(n(s.mean,4)),
+tdr('<span class="'+(dev>0?'pos':'neg')+'">'+(dev>=0?'+':'')+n(dev,4)+'</span>'),
+tdr('<span class="'+(dev>0?'pos':'neg')+'">'+(devPct>=0?'+':'')+n(devPct,2)+'%</span>'),
+tdr('<span class="'+(zc||'neu')+'">'+n(s.zscore,2)+'\u03c3</span>'),tdc('<b>'+sig_text+'</b>',sc)];
+});
+h+=tbl([['Пара'],['Обычка','r'],['Преф','r'],['Ratio P/C','r'],['Mean(60d)','r'],['\u0394abs','r'],['\u0394%','r'],['Z-Score','r'],['Сигнал']],rows,'strat-pref-tbl');
+h+='<div style="display:flex;gap:16px;margin:14px 0;flex-wrap:wrap">';
+for(var i=0;i<sig.length;i++){var s=sig[i];
+var pct=Math.min(Math.max((s.zscore+3)/6*100,2),98);
+var col=Math.abs(s.zscore)>=2?'var(--red)':Math.abs(s.zscore)>=1.5?'var(--yellow)':'var(--green)';
+h+='<div style="flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--bb);border-radius:6px;padding:10px 14px">';
+h+='<div style="font-size:11px;color:var(--td);margin-bottom:6px">'+s.name+' ('+s.common+'/'+s.pref+')</div>';
+h+='<div style="height:8px;background:var(--bg3);border-radius:4px;position:relative;overflow:hidden">';
+h+='<div style="position:absolute;left:'+pct+'%;top:-2px;width:4px;height:12px;background:'+col+';border-radius:2px;transform:translateX(-50%)"></div>';
+h+='<div style="position:absolute;left:50%;top:0;width:1px;height:8px;background:var(--bb)"></div></div>';
+h+='<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--td);margin-top:2px"><span>-3\u03c3</span><span>0</span><span>+3\u03c3</span></div>';
+h+='<div style="text-align:center;font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:'+col+';margin-top:4px">'+n(s.zscore,2)+'\u03c3</div></div>';}
+h+='</div>';}
+h+='<hr class="sep"><div class="sub">Бэктест (2013\u20132026, с дивидендами)</div>';
+h+='<div class="cap">RF=\u041a\u0421 \u0426\u0411 \u043a\u0430\u043f\u0430\u0435\u0442 \u0432\u0441\u0435\u0433\u0434\u0430. Alpha = PnL \u0441\u0434\u0435\u043b\u043e\u043a \u0441\u0432\u0435\u0440\u0445 RF.</div>';
+h+='<div style="display:flex;gap:10px;margin:10px 0"><button class="stab'+(btMode==='a'?' active':'')+'" onclick="setBtMode(\'a\',this)">Alpha</button><button class="stab'+(btMode==='e'?' active':'')+'" onclick="setBtMode(\'e\',this)">Equity</button></div>';
+h+='<div id="strat-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"></div>';
+h+='<canvas id="bt-chart" height="420" style="width:100%"></canvas>';
+h+='<div id="bt-legend" style="display:flex;gap:20px;justify-content:center;margin-top:8px"></div>';
+return h;
+}
+
+function renderSector(d){
+var sec=d.sector_signals||[];
+var h='<div class="sub">Sector Rotation \u2014 Momentum L/S</div>';
+h+='<div class="cap">Long top-2 \u043f\u043e 3M momentum, short bottom-2. Rebal \u0435\u0436\u0435\u043c\u0435\u0441\u044f\u0447\u043d\u043e. Backtest: Sharpe 1.01, +18.2%/yr (15 \u043b\u0435\u0442)</div>';
+if(sec.length){
+var longs=sec.filter(function(s){return s.signal==='LONG'});
+var shorts=sec.filter(function(s){return s.signal==='SHORT'});
+h+='<div class="mets">';
+h+='<div class="mc" style="border-top:2px solid var(--green)"><div class="ml">LONG</div><div class="mv" style="color:var(--green)">'+longs.map(function(s){return s.name}).join(', ')+'</div></div>';
+h+='<div class="mc" style="border-top:2px solid var(--red)"><div class="ml">SHORT</div><div class="mv" style="color:var(--red)">'+shorts.map(function(s){return s.name}).join(', ')+'</div></div>';
+h+='</div>';
+var rows=sec.map(function(s){
+var sc=s.signal==='LONG'?'pos':(s.signal==='SHORT'?'neg':'muted');
+return[td(s.name,'tk'),tdr(n(s.price,2)),
+tdr(s.m1!=null?'<span class="'+cls(s.m1)+'">'+n(s.m1,1)+'%</span>':'\u2014'),
+tdr(s.m3!=null?'<span class="'+cls(s.m3)+'">'+n(s.m3,1)+'%</span>':'\u2014'),
+tdr(s.m6!=null?'<span class="'+cls(s.m6)+'">'+n(s.m6,1)+'%</span>':'\u2014'),
+tdr(s.m12!=null?'<span class="'+cls(s.m12)+'">'+n(s.m12,1)+'%</span>':'\u2014'),
+tdc('<b>'+s.signal+'</b>',sc)];
+});
+h+=tbl([['Сектор'],['Цена','r'],['1M%','r'],['3M%','r'],['6M%','r'],['12M%','r'],['Сигнал']],rows,'strat-sec-tbl');
+}else{h+='<div class="cap">Нет данных</div>';}
+return h;
+}
+
+function renderMom(d){
+var mom=d.momentum_table||[];
+var h='<div class="sub">Cross-Asset Momentum Scoreboard</div>';
+h+='<div class="cap">Dual momentum: Absolute (3M>0) + Relative (top-3). Exit when 1M reversal or 3M<0.</div>';
+if(mom.length){
+var sb=mom.filter(function(m){return m.signal==='STRONG BUY'});
+var buys=mom.filter(function(m){return m.signal==='BUY'});
+var exits=mom.filter(function(m){return m.signal==='HOLD/EXIT'});
+h+='<div class="mets">';
+if(sb.length)h+='<div class="mc" style="border-top:2px solid var(--green)"><div class="ml">STRONG BUY</div><div class="mv" style="color:var(--green);font-size:13px">'+sb.map(function(m){return m.name}).join(', ')+'</div></div>';
+if(buys.length)h+='<div class="mc" style="border-top:2px solid #3b82f6"><div class="ml">BUY</div><div class="mv" style="color:#3b82f6;font-size:13px">'+buys.map(function(m){return m.name}).join(', ')+'</div></div>';
+if(exits.length)h+='<div class="mc" style="border-top:2px solid var(--yellow)"><div class="ml">HOLD/EXIT</div><div class="mv" style="color:var(--yellow);font-size:13px">'+exits.map(function(m){return m.name}).join(', ')+'</div></div>';
+h+='</div>';
+var rows=mom.map(function(m){
+var sc=m.signal==='STRONG BUY'?'pos':(m.signal==='BUY'?'pos':(m.signal==='HOLD/EXIT'?'warn':(m.signal==='WATCH'?'neu':'neg')));
+return[td(m.name,'tk'),td(m.cls),tdr(n(m.price,2)),
+tdr(m.m1!=null?'<span class="'+cls(m.m1)+'">'+(m.m1>=0?'+':'')+n(m.m1,1)+'%</span>':'\u2014'),
+tdr(m.m3!=null?'<span class="'+cls(m.m3)+'">'+(m.m3>=0?'+':'')+n(m.m3,1)+'%</span>':'\u2014'),
+tdr(m.m6!=null?'<span class="'+cls(m.m6)+'">'+(m.m6>=0?'+':'')+n(m.m6,1)+'%</span>':'\u2014'),
+tdr(m.m12!=null?'<span class="'+cls(m.m12)+'">'+(m.m12>=0?'+':'')+n(m.m12,1)+'%</span>':'\u2014'),
+tdc('<b>'+m.signal+'</b>',sc),td(m.reason||'')];
+});
+h+=tbl([['Актив'],['Класс'],['Цена','r'],['1M%','r'],['3M%','r'],['6M%','r'],['12M%','r'],['Сигнал'],['Причина']],rows);
+h+='<hr class="sep"><div class="cap"><b>Логика:</b> STRONG BUY = Top-3 по 3M + тренд вверх | BUY = 3M>0, 1M ускоряется | HOLD/EXIT = 3M>0 но 1M разворот | WATCH = восстановление | AVOID = нисходящий тренд</div>';
+}else{h+='<div class="cap">Нет данных</div>';}
+return h;
+}
+function renderDiv(d){
+var b=d.div_basket||{};
+var t1=b.tier1||[];var t2=b.tier2||[];
+var all=t1.concat(t2);
+var h='<div class="sub">Dividend Capture — Calendar & Signals</div>';
+h+='<div class="cap">Buy T-10, Sell T+0 (before gap). Даты оценочные по историческим паттернам.</div>';
+var upcoming=[];
+all.forEach(function(s){(s.upcoming||[]).forEach(function(u){upcoming.push({ticker:s.ticker,name:s.name,tier:t1.indexOf(s)>=0?1:2,z:s.z,avg:s.avg,u:u})})});
+upcoming.sort(function(a,b){return a.u.days_to_ex-b.u.days_to_ex});
+var buyNow=upcoming.filter(function(x){return x.u.status==='BUY NOW'});
+var prepare=upcoming.filter(function(x){return x.u.status==='PREPARE'});
+if(buyNow.length){
+h+='<div class="sub" style="color:var(--green)">⚡ BUY NOW</div>';
+var r1=buyNow.map(function(x){return[td(x.ticker,'tk'),td(x.name),tdr('T'+x.tier),tdr(n(x.z,2)),tdr('<span class="pos">+'+n(x.avg,1)+'%</span>'),td(x.u.est_buy),td(x.u.est_ex),tdr(x.u.days_to_ex+' дн'),tdr(n(x.u.est_div,2)+'₽')]});
+h+=tbl([['Тикер'],['Название'],['Tier','r'],['Z','r'],['Avg Ret','r'],['Buy Date'],['Est. Ex'],['To Ex','r'],['Est.Div','r']],r1);}
+if(prepare.length){
+h+='<div class="sub" style="color:var(--yellow)">⏳ PREPARE (5-20 дней)</div>';
+var r2=prepare.map(function(x){return[td(x.ticker,'tk'),td(x.name),tdr('T'+x.tier),tdr(n(x.z,2)),tdr('<span class="pos">+'+n(x.avg,1)+'%</span>'),td(x.u.est_buy),td(x.u.est_ex),tdr(x.u.days_to_ex+' дн'),tdr(n(x.u.est_div,2)+'₽')]});
+h+=tbl([['Тикер'],['Название'],['Tier','r'],['Z','r'],['Avg Ret','r'],['Buy Date'],['Est. Ex'],['To Ex','r'],['Est.Div','r']],r2);}
+h+='<hr class="sep"><div class="sub">Tier 1 — Z≥2.0, 100% Win Rate</div>';
+var r3=t1.map(function(s){var months=(s.typical_months||[]).map(function(t){return t.month_name}).join(', ');var nx=(s.upcoming||[])[0];return[td(s.ticker,'tk'),td(s.name),tdr(n(s.z,2)),tdr('<span class="pos">+'+n(s.avg,1)+'%</span>'),tdr(s.win+'%'),tdr(n(s.dy,1)+'%'),td(months),tdc(nx?'<b>'+nx.status+'</b>':'?',nx?(nx.status==='BUY NOW'?'pos':(nx.status==='PREPARE'?'warn':'muted')):'muted')]});
+h+=tbl([['Тикер'],['Назв.'],[' Z','r'],['Avg%','r'],['Win','r'],['ДивДох','r'],['Месяцы див.'],['Статус']],r3);
+h+='<div class="sub" style="margin-top:12px">Tier 2 — Z≥1.3, ликвидные</div>';
+var r4=t2.map(function(s){var months=(s.typical_months||[]).map(function(t){return t.month_name}).join(', ');var nx=(s.upcoming||[])[0];return[td(s.ticker,'tk'),td(s.name),tdr(n(s.z,2)),tdr('<span class="pos">+'+n(s.avg,1)+'%</span>'),tdr(s.win+'%'),tdr(n(s.dy,1)+'%'),td(months),tdc(nx?'<b>'+nx.status+'</b>':'?',nx?(nx.status==='BUY NOW'?'pos':(nx.status==='PREPARE'?'warn':'muted')):'muted')]});
+h+=tbl([['Тикер'],['Назв.'],[' Z','r'],['Avg%','r'],['Win','r'],['ДивДох','r'],['Месяцы'],['Статус']],r4);
+h+='<hr class="sep"><div class="mets">';
+h+='<div class="mc" style="border-top:2px solid var(--green)"><div class="ml">Баскет</div><div class="mv">'+(t1.length+t2.length)+' бумаг</div></div>';
+h+='<div class="mc" style="border-top:2px solid var(--blue)"><div class="ml">Avg Return</div><div class="mv" style="color:var(--green)">~8%/сделку</div></div>';
+h+='<div class="mc" style="border-top:2px solid var(--yellow)"><div class="ml">Годовая оц.</div><div class="mv">~30% gross</div></div>';
+h+='<div class="mc"><div class="ml">Win Rate</div><div class="mv">89-100%</div></div></div>';
+h+='<div class="cap" style="margin-top:8px"><b>Инсайт:</b> Pre-dividend drift. Buy T-10, sell T+0. Даты оценочные — уточнять на MOEX.</div>';
+return h;
+}
+
+function renderBtStats(){
+if(!btData)return;
+var el=$('strat-stats');if(!el)return;
+var keys=['SBER/P','TATN/P','RTKM/P','Portfolio'];
+var cols=['var(--blue)','var(--yellow)','var(--green)','var(--tb)'];
+el.innerHTML=keys.map(function(k,i){var d=btData[k];if(!d)return'';
+return'<div class="mc" style="border-top:2px solid '+cols[i]+'"><div class="ml">'+BTC[k].n+'</div><div class="mv" style="color:'+cols[i]+'">Sharpe '+d.sharpe+'</div><div style="font-size:11px;color:var(--td);font-family:JetBrains Mono,monospace;margin-top:2px">\u03b1 '+(d.alpha_ann>0?'+':'')+d.alpha_ann+'%/yr \u00b7 util '+d.util+'%<br>'+(d.alpha/1000).toFixed(0)+'K\u20bd \u0437\u0430 '+d.yrs+'\u043b</div></div>';}).join('');
+var leg=$('bt-legend');if(!leg)return;
+leg.innerHTML=Object.keys(BTC).map(function(k){if(!btData[k])return'';
+return'<div style="display:flex;align-items:center;gap:6px;font-size:11px;font-family:JetBrains Mono,monospace;color:var(--td);cursor:pointer;padding:3px 8px;border-radius:4px" onclick="toggleBt(\''+k+'\')" id="btl-'+k.replace('/','_')+'"><span style="width:16px;height:3px;border-radius:2px;background:'+BTC[k].l+';display:inline-block"></span>'+BTC[k].n+'</div>';}).join('');
+}
+
+window.setBtMode=function(m,el){btMode=m;el.parentElement.querySelectorAll('.stab').forEach(function(b){b.classList.remove('active')});el.classList.add('active');drawBt()};
+window.toggleBt=function(k){btHidden[k]=!btHidden[k];var el=document.getElementById('btl-'+k.replace('/','_'));if(el)el.style.opacity=btHidden[k]?'0.3':'1';drawBt()};
+
+function drawBt(){
+if(!btData)return;
+var cv=document.getElementById('bt-chart');if(!cv)return;
+var x=cv.getContext('2d'),dp=devicePixelRatio||1,W=cv.parentElement.clientWidth-24,Ht=420;
+cv.width=W*dp;cv.height=Ht*dp;cv.style.width=W+'px';cv.style.height=Ht+'px';
+x.scale(dp,dp);x.clearRect(0,0,W,Ht);
+var P={t:20,r:80,b:40,l:70},cw=W-P.l-P.r,ch=Ht-P.t-P.b;
+var ks=Object.keys(BTC).filter(function(k){return btData[k]&&!btHidden[k]});if(!ks.length)return;
+var aD=[],aV=[];
+ks.forEach(function(k){var d=btData[k],v=btMode==='a'?d.a:d.s;aD=aD.concat(d.d);aV=aV.concat(v)});
+if(btMode==='e'){var rf=btData['SBER/P']||btData[ks[0]];aV=aV.concat(rf.r)}
+var mn=Math.min.apply(null,aV),mx=Math.max.apply(null,aV),pad=(mx-mn)*.08;mn-=pad;mx+=pad;
+var d2=function(d){return new Date(d).getTime()},mt=d2(aD.reduce(function(a,b){return a<b?a:b})),xt=d2(aD.reduce(function(a,b){return a>b?a:b}));
+var xS=function(d){return P.l+(d2(d)-mt)/(xt-mt)*cw},yS=function(v){return P.t+ch-(v-mn)/(mx-mn)*ch};
+x.strokeStyle='#1e293b';x.lineWidth=.5;
+for(var i=0;i<=6;i++){var v=mn+(mx-mn)*i/6,y=yS(v);x.beginPath();x.moveTo(P.l,y);x.lineTo(W-P.r,y);x.stroke();x.fillStyle='#475569';x.font='11px JetBrains Mono';x.textAlign='right';x.fillText(btMode==='a'?(v/1e3).toFixed(0)+'K':(v/1e6).toFixed(1)+'M',P.l-8,y+4)}
+x.textAlign='center';for(var yr=2014;yr<=2026;yr++){var xp=xS(yr+'-01-01');if(xp>P.l&&xp<W-P.r){x.strokeStyle='#1e293b';x.beginPath();x.moveTo(xp,P.t);x.lineTo(xp,Ht-P.b);x.stroke();x.fillStyle='#475569';x.fillText(''+yr,xp,Ht-P.b+16)}}
+if(btMode==='a'&&mn<0){var y0=yS(0);x.strokeStyle='#334155';x.lineWidth=1;x.setLineDash([4,4]);x.beginPath();x.moveTo(P.l,y0);x.lineTo(W-P.r,y0);x.stroke();x.setLineDash([])}
+if(btMode==='e'){var rf2=btData['SBER/P']||btData[ks[0]];x.strokeStyle='#ef4444';x.lineWidth=1.5;x.setLineDash([6,4]);x.beginPath();rf2.d.forEach(function(d,i){var xp2=xS(d),yp=yS(rf2.r[i]);i?x.lineTo(xp2,yp):x.moveTo(xp2,yp)});x.stroke();x.setLineDash([]);x.fillStyle='#ef4444';x.font='11px JetBrains Mono';x.textAlign='left';x.fillText('RF',(W-P.r+6),yS(rf2.r[rf2.r.length-1])+4)}
+ks.forEach(function(k){var d=btData[k],v=btMode==='a'?d.a:d.s,c=BTC[k];x.fillStyle=c.f;x.beginPath();x.moveTo(xS(d.d[0]),yS(btMode==='a'?0:v[0]));d.d.forEach(function(dt,i){x.lineTo(xS(dt),yS(v[i]))});x.lineTo(xS(d.d[d.d.length-1]),yS(btMode==='a'?0:v[0]));x.fill();x.strokeStyle=c.l;x.lineWidth=k==='Portfolio'?2.5:1.8;x.beginPath();d.d.forEach(function(dt,i){var xp3=xS(dt),yp2=yS(v[i]);i?x.lineTo(xp3,yp2):x.moveTo(xp3,yp2)});x.stroke();var lv=v[v.length-1],lx=xS(d.d[d.d.length-1]),ly=yS(lv);x.fillStyle=c.l;x.font='11px JetBrains Mono';x.textAlign='left';x.fillText(btMode==='a'?(lv/1e3).toFixed(0)+'K':(lv/1e6).toFixed(1)+'M',lx+6,ly+4)});
+}
+// ═══════ TABS ═══════
+document.querySelectorAll('.tabs>.tab').forEach(tab=>{
+tab.onclick=()=>{
+document.querySelectorAll('.tabs>.tab').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));
+tab.classList.add('active');
+$('t-'+tab.dataset.t).classList.add('active');if(tab.dataset.t==='gf'){var f=$('gf-frame');if(!f.src||f.src==='about:blank')f.src='/gf/';}if(tab.dataset.t==='macro'){setTimeout(function(){if(macroChartData){drawMacro(macroChartData);}else{loadMacro();}},100);}
+if(tab.dataset.t==='futoi'){renderFutoi();}
+if(tab.dataset.t==='funds'){renderFunds();}
+}
+});
+setInterval(()=>{$('h-time').textContent=new Date().toLocaleTimeString('ru-RU')},1000);
+// polling started above
+
+// ═══ MACRO CHART ═══
+var macroChartData=null;
+var macroRange='all';
+var macroInited=false;
+window.addEventListener('resize',function(){if(macroChartData&&document.getElementById('t-macro').classList.contains('active'))drawMacro(macroChartData);});
+
+
+function initMacro(catalog){
+  var sel=document.getElementById('macro-sel');
+  if(!sel||macroInited) return;
+  macroInited=true;
+  sel.innerHTML='';
+  var groups={};
+  catalog.forEach(function(c){if(!groups[c.group])groups[c.group]=[];groups[c.group].push(c);});
+  Object.keys(groups).forEach(function(g){
+    var og=document.createElement('optgroup');og.label=g;
+    groups[g].forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;og.appendChild(o);});
+    sel.appendChild(og);
+  });
+  // auto-load on first init
+  setTimeout(function(){if(document.getElementById('t-macro').classList.contains('active'))loadMacro();},200);
+}
+
+window.setMacroRange=function(el){
+  macroRange=el.dataset.mr;
+  el.parentElement.querySelectorAll('.stab').forEach(function(b){b.classList.remove('active')});
+  el.classList.add('active');
+  if(macroChartData) drawMacro(macroChartData);
+};
+
+function loadMacro(){
+  var sel=document.getElementById('macro-sel');
+  var id=sel?sel.value:'';
+  if(!id) return;
+  if(macroChartData&&macroChartData._id===id){
+    setTimeout(function(){drawMacro(macroChartData);},50);
+    return;
+  }
+  fetch('/api/macro/'+id)
+    .then(function(r){return r.json()})
+    .then(function(data){macroChartData=data;macroChartData._id=id;setTimeout(function(){drawMacro(data);},50);})
+    .catch(function(e){console.error('macro load error',e);});
+}
+
+function drawMacro(data){
+  var dates=data.dates||[],values=data.values||[];
+  if(!dates.length) return;
+  if(macroRange!=='all'){
+    var yrs=parseInt(macroRange);
+    var cutoff=new Date(new Date().getFullYear()-yrs,0,1).toISOString().slice(0,10);
+    var f=[];var cl=dates[0].length;var cc=cutoff.slice(0,cl);for(var i=0;i<dates.length;i++){if(dates[i]>=cc)f.push({d:dates[i],v:values[i]});}
+    if(f.length){dates=f.map(x=>x.d);values=f.map(x=>x.v);}
+  }
+  var sel=document.getElementById('macro-sel');
+  var name=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:'';
+  var cat=(lastData&&lastData.macro_catalog)||[];
+  var item=cat.find(c=>c.id===macroChartData._id)||{};
+  var trace={x:dates,y:values,name:name};
+  if(item.type==='step'){trace.line={shape:'hv',color:'#ff6b6b',width:2};trace.fill='tozeroy';trace.fillcolor='rgba(255,107,107,0.06)';}
+  else if(item.type==='bar'){trace.type='bar';trace.marker={color:values.map(v=>v>=0?'rgba(59,130,246,0.7)':'rgba(255,90,106,0.7)')};}
+  else{trace.line={color:'#3b82f6',width:2};trace.fill='tozeroy';trace.fillcolor='rgba(59,130,246,0.04)';}
+
+  // Берём РЕАЛЬНУЮ ширину видимого контейнера
+  var el=document.getElementById('macro-chart');
+  
+
+  Plotly.react('macro-chart',[trace],{
+    paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(17,24,32,0.5)',
+    font:{color:'#d0d8e2',family:'IBM Plex Sans',size:12},
+    height:715,
+    margin:{l:55,r:30,t:40,b:50},
+    xaxis:{gridcolor:'#222d3a',zerolinecolor:'#2e3d4e',tickfont:{color:'#9aacbf'},dtick:(dates.length&&dates[0].length<=4)?1:undefined,tickformat:(dates.length&&dates[0].length<=4)?'d':undefined},
+    yaxis:{gridcolor:'#222d3a',zerolinecolor:'#2e3d4e',tickfont:{color:'#9aacbf'},title:data.unit||'',range:values.length?[(function(mn){return mn>=0?mn*0.9:mn*1.1})(Math.min.apply(null,values)),(function(mx){return mx>=0?mx*1.1:mx*0.9})(Math.max.apply(null,values))]:undefined},
+    hovermode:'x unified' 
+  },{displayModeBar:false});
+
+  var last=values[values.length-1],prev=values.length>1?values[values.length-2]:last,chg=last-prev;
+  document.getElementById('macro-info').innerHTML=dates.length+' точек | '+dates[0]+' → '+dates[dates.length-1]+' | <b>'+last+(data.unit?' '+data.unit:'')+'</b> | Δ <span style="color:'+(chg>=0?'#4ade80':'#f87171')+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'</span>';
+}
+
+// ═══ CONSENSUS MONITOR ═══
+function renderConsensus(d){
+  if(!window._consData&&!window._consLoading){
+    window._consLoading=true;
+    fetch('/static/consensus.json').then(function(r){return r.json()}).then(function(data){
+      window._consData=data;window._consLoading=false;renderConsensus(d);
+    }).catch(function(){window._consLoading=false;$('cons-content').innerHTML='<div class="cap">Ошибка загрузки consensus.json</div>'});
+    $('cons-content').innerHTML='<div class="cap">Загрузка...</div>';return;
+  }
+  if(!window._consData)return;
+  var cd=window._consData;
+  var filter=(document.getElementById('cons-filter')||{}).value||'';
+  filter=filter.toUpperCase();
+  var secF=(document.getElementById('cons-sec')||{}).value||'all';
+  // live prices from snapshot
+  var liveMap={};
+  var eqAll=d.equities||[];
+  eqAll.forEach(function(e){liveMap[e.secid]={price:e.last||0,change:e.change_pct}});
+  // also check spot_prices
+  (d.spot_prices||[]).forEach(function(s){if(!liveMap[s.ticker])liveMap[s.ticker]={price:s.price||0,change:null}});
+  var rows=cd.filter(function(c){
+    if(secF!=='all'&&c.sector!==secF)return false;
+    if(filter&&c.ticker.toUpperCase().indexOf(filter)<0&&(c.name||'').toUpperCase().indexOf(filter)<0)return false;
+    return true;
+  }).map(function(c){
+    var lv=liveMap[c.ticker]||{};
+    var price=lv.price||0;
+    var chg=lv.change;
+    var sh=c.shares||0;
+    var mcap=price>0&&sh>0?price*sh/1e9:0;
+    var nd=c.net_debt||0;
+    var ev=mcap>0&&nd!==null?mcap+nd:0;
+    var ebitda=c.ebitda||0;
+    var ni=c.net_income||0;
+    var fcf=c.fcf||0;
+    var dps=c.dps||0;
+    var evEbitda=ev>0&&ebitda>0?ev/ebitda:null;
+    var ndEbitda=ebitda>0&&nd!==null?nd/ebitda:null;
+    var pe=mcap>0&&ni>0?mcap/ni:null;
+    var fcfEv=ev>0&&fcf>0?fcf/ev*100:null;
+    var divYld=price>0&&dps>0.001?dps/price*100:null;
+    var upside=price>0&&c.target>0?(c.target/price-1)*100:null;
+    var rec=c.rec;var recTxt=rec<=1.5?'BUY':rec<=2.5?'HOLD':'SELL';
+    var recCls=rec<=1.5?'pos':rec<=2.5?'':'neg';
+    return{ticker:c.ticker,name:c.name,type:c.type,sector:c.sector||'',price:price,chg:chg,mcap:mcap,
+      target:c.target,upside:upside,rec:rec,recTxt:recTxt,recCls:recCls,
+      evEbitda:evEbitda,ndEbitda:ndEbitda,pe:pe,fcfEv:fcfEv,
+      divYld:divYld,dps:dps,ev:ev,ebitda:ebitda,ni:ni};
+  });
+  // sort by ticker
+  rows.sort(function(a,b){return a.ticker<b.ticker?-1:1;});
+  // summary
+  var withData=rows.filter(function(r){return r.mcap>0});
+  var totalMcap=withData.reduce(function(s,r){return s+r.mcap},0);
+  var avgPE=withData.filter(function(r){return r.pe&&r.pe>0&&r.pe<100});
+  var mPE=avgPE.length?avgPE.reduce(function(s,r){return s+r.pe},0)/avgPE.length:0;
+  var avgEV=withData.filter(function(r){return r.evEbitda&&r.evEbitda>0&&r.evEbitda<50});
+  var mEV=avgEV.length?avgEV.reduce(function(s,r){return s+r.evEbitda},0)/avgEV.length:0;
+  var h='<div class="mets">'+metric('Акций',withData.length)+metric('\u03a3 MCap',n(totalMcap,0)+' млрд')+metric('Ср P/E',n(mPE,1))+metric('Ср EV/EBITDA',n(mEV,1))+'</div>';
+  var trows=rows.map(function(r){
+    return[td(r.ticker,'tk'),td(r.name||'','nm'),td(r.sector||''),
+      tdr(r.price>0?n(r.price,2):'\u2014'),
+      tdr(r.chg!=null?'<span class="'+cls(r.chg)+'">'+(r.chg>=0?'+':'')+n(r.chg,2)+'%</span>':'\u2014'),
+      tdr(r.target?n(r.target,0):'\u2014'),
+      tdr(r.upside!=null?'<span class="'+(r.upside>=0?'pos':'neg')+'">'+(r.upside>=0?'+':'')+n(r.upside,1)+'%</span>':'\u2014'),
+      '<td class="r '+r.recCls+'">'+r.recTxt+'</td>',
+      tdr(r.mcap>0?n(r.mcap,1):'\u2014'),
+      tdr(r.evEbitda!=null?'<span class="'+(r.evEbitda<5?'pos':r.evEbitda>12?'neg':'')+'">'+n(r.evEbitda,1)+'</span>':'\u2014'),
+      tdr(r.ndEbitda!=null?'<span class="'+(r.ndEbitda>3?'neg':r.ndEbitda<0?'pos':'')+'">'+n(r.ndEbitda,1)+'</span>':'\u2014'),
+      tdr(r.pe!=null?'<span class="'+(r.pe<6?'pos':r.pe>15?'neg':'')+'">'+n(r.pe,1)+'</span>':'\u2014'),
+      tdr(r.fcfEv!=null?'<span class="'+(r.fcfEv>10?'pos':r.fcfEv<0?'neg':'')+'">'+n(r.fcfEv,1)+'%</span>':'\u2014'),
+      
+      tdr(r.dps>0.001?n(r.dps,2):'\u2014'),
+      tdr(r.divYld!=null?'<span class="pos">'+n(r.divYld,1)+'%</span>':'\u2014')]});
+  h+=tbl([['Тикер'],['Название'],['Сектор'],['Цена','r'],['Изм%','r'],['Таргет','r'],['Upside','r'],['Рек','r'],['MCap млрд','r'],['EV/EBITDA','r'],['ND/EBITDA','r'],['P/E','r'],['FCF/EV','r'],['DPS','r'],['Див.дох%','r']],trows,'cons-tbl');
+  $('cons-content').innerHTML=h;
+}
+function renderVolume(d){
+  var va=d.volume_anomalies||[];
+  if(!va.length){$('vol-content').innerHTML='<div class="cap">Нет данных</div>';return;}
+  var filter=(document.getElementById('vol-filter')||{}).value||'';
+    filter=filter.toUpperCase();
+  var dt=va.reduce(function(m,v){return v.date>m?v.date:m;},'');
+  var el=$('vol-date');if(el)el.textContent='RVOL = объём / среднее за 60 периодов | Данные: '+dt;
+  var rows=va.filter(function(v){
+    if(filter&&v.ticker.toUpperCase().indexOf(filter)<0&&(v.name||'').toUpperCase().indexOf(filter)<0)return false;
+    return true;
+  });
+  function rc(r){
+    var c=r>=3?'bg-neg':r>=2?'bg-pos':r>=1.5?'pos':r<=0.5?'neg':'';
+    return '<td class="r '+c+'">'+r.toFixed(1)+'x</td>';
+  }
+  var trows=rows.map(function(v){
+    return [td(v.name||'','nm'),td(v.ticker,'tk'),tdr(nm(v.voltoday||v.vol_1d)),tdr(nm(v.valtoday||0)),tdr(nm(v.vol_avg)),rc(v.r1),rc(v.r5),rc(v.r10)];
+  });
+  var h=tbl([['Название'],['Тикер'],['Vol сегодня','r'],['Оборот ₽','r'],['Avg 60д','r'],['1д','r'],['5д','r'],['10д','r']],trows,'vol-tbl');
+  $('vol-content').innerHTML=h+'<div style="color:var(--td);font-size:10px;margin-top:4px">'+rows.length+' / '+va.length+' | RVOL: 1.0=норма, 2.0+=повышенный, 3.0+=аномалия</div>';
+}
+
+
+// ═══ FUTOI — OI by client type ═══
+var _futoi=null,_futoiLoading=false,_futoiChart=null;
+
+function renderFutoi(){
+  if(_futoi){drawFutoiTable();return;}
+  if(_futoiLoading)return;
+  _futoiLoading=true;
+  $('futoi-content').innerHTML='<div class="cap">Загрузка данных OI...</div>';
+  fetch('/api/futoi').then(function(r){return r.json()}).then(function(d){
+    _futoi=d;_futoiLoading=false;
+    drawFutoiTable();
+    initFutoiSelector(d);
+    fetch('/api/futoi/dates').then(function(r2){return r2.json()}).then(function(dd){
+      var el=$('futoi-range');
+      if(el&&dd.min)el.textContent='Данные: '+dd.min+' \u2192 '+dd.max+' ('+dd.count+' дней)';
+    });
+  }).catch(function(e){_futoiLoading=false;$('futoi-content').innerHTML='<div class="cap">Ошибка: '+e+'</div>';});
+}
+
+var _foiCats={
+  '\u0412\u0430\u043b\u044e\u0442\u0430':['Si','CR','Eu','CNYRUBF','USDRUBF'],
+  '\u0418\u043d\u0434\u0435\u043a\u0441\u044b':['RI','MX','MXI','IB','RB','VI','IMOEXF','RGBIF'],
+  '\u042d\u043d\u0435\u0440\u0433\u043e':['BR','NG','NA','CL','TF','NR'],
+  '\u041c\u0435\u0442\u0430\u043b\u043b\u044b':['GD','GL','SL','PT','PD','GLDRUBF','CC'],
+  '\u0410\u0433\u0440\u043e':['WH','CF','OJ','SU'],
+  '\u041a\u0440\u0438\u043f\u0442\u043e':['BT','ET'],
+  '\u0421\u0442\u0430\u0432\u043a\u0438':['ON','MF']
+};
+var _foiNames={'Si':'USDRUB','CR':'CNYRUB','Eu':'EURRUB','BR':'Brent','GD':'Gold $','GL':'Gold \u20bd',
+  'NA':'Nat Gas','RI':'RTS','MX':'MOEX','VB':'VTB','GZ':'Gazprom','SV':'Sberbank',
+  'GK':'Norilsk','NR':'Brent Rub','SR':'Sberbank P','SS':'Surgutnfgz',
+  'IB':'iMOEX','RB':'RGBI','CC':'Copper','CE':'CHMF','NG':'Nat Gas','CL':'Light Oil',
+  'SL':'Silver','PT':'Platinum','PD':'Palladium','VI':'RVI','TF':'TTF Gas',
+  'BT':'Bitcoin','ET':'Ethereum','ON':'RUONIA','MF':'MosFundRate',
+  'WH':'Wheat','CF':'Coffee','OJ':'Orange','SU':'Sugar',
+  'CNYRUBF':'CNYRUB perp','USDRUBF':'USDRUB perp','IMOEXF':'IMOEX perp',
+  'GLDRUBF':'Gold\u20bd perp','SBERF':'Sber perp','GAZPF':'Gazp perp','RGBIF':'RGBI perp'};
+var _foiAll=[];
+
+function _foiGetCat(tk){
+  for(var cat in _foiCats){if(_foiCats[cat].indexOf(tk)!==-1)return cat;}
+  return '\u0410\u043a\u0446\u0438\u0438';
+}
+
+function _foiFilterTickers(){
+  var catSel=$('futoi-cat');
+  var sel=$('futoi-ticker');
+  var cat=catSel.value;
+  sel.innerHTML='<option value="">Выберите тикер...</option>';
+  var list=cat==='all'?_foiAll:_foiAll.filter(function(t){return _foiGetCat(t.tk)===cat;});
+  list.forEach(function(t){
+    var o=document.createElement('option');
+    o.value=t.tk;
+    o.textContent=t.tk+(_foiNames[t.tk]?' ('+_foiNames[t.tk]+')':'');
+    sel.appendChild(o);
+  });
+}
+
+function initFutoiSelector(d){
+  var sel=$('futoi-ticker');
+  var catSel=$('futoi-cat');
+  if(!sel||_foiAll.length>0)return;
+  var m={};
+  (d.data||[]).forEach(function(r){
+    if(!m[r.ticker])m[r.ticker]={total:0};
+    m[r.ticker].total+=Math.abs(r.pos_long||0);
+  });
+  var sorted=Object.keys(m).sort(function(a,b){return m[b].total-m[a].total});
+  _foiAll=sorted.map(function(tk){return{tk:tk,total:m[tk].total};});
+
+  // Fill category selector with counts
+  if(catSel){
+    catSel.innerHTML='<option value="all">Все ('+_foiAll.length+')</option>';
+    var catOrder=['\u0412\u0430\u043b\u044e\u0442\u0430','\u0418\u043d\u0434\u0435\u043a\u0441\u044b','\u042d\u043d\u0435\u0440\u0433\u043e','\u041c\u0435\u0442\u0430\u043b\u043b\u044b','\u0410\u0433\u0440\u043e','\u041a\u0440\u0438\u043f\u0442\u043e','\u0421\u0442\u0430\u0432\u043a\u0438','\u0410\u043a\u0446\u0438\u0438'];
+    catOrder.forEach(function(cat){
+      var cnt=_foiAll.filter(function(t){return _foiGetCat(t.tk)===cat;}).length;
+      if(cnt>0){
+        var o=document.createElement('option');
+        o.value=cat;
+        o.textContent=cat+' ('+cnt+')';
+        catSel.appendChild(o);
+      }
+    });
+    catSel.onchange=function(){_foiFilterTickers();};
+  }
+
+  _foiFilterTickers();
+  sel.onchange=function(){if(sel.value)loadFutoiChart(sel.value);else{$('futoi-chart-wrap').style.display='none';}};
+}
+
+function drawFutoiTable(){
+  if(!_futoi||!_futoi.data)return;
+  var d=_futoi.data,dt=_futoi.date;
+  // Pivot: group by ticker
+  var m={};
+  d.forEach(function(r){
+    if(!m[r.ticker])m[r.ticker]={};
+    m[r.ticker][r.clgroup]=r;
+  });
+  var rows=[];
+  Object.keys(m).forEach(function(tk){
+    var f=m[tk].FIZ||{},y=m[tk].YUR||{};
+    var fl=f.pos_long||0,fs=f.pos_short||0,fn=fl+(fs);
+    var yl=y.pos_long||0,ys=y.pos_short||0,yn=yl+(ys);
+    var totalOI=fl+Math.abs(fs)+yl+Math.abs(ys);
+    var fln=f.pos_long_num||0,fsn=f.pos_short_num||0;
+    var yln=y.pos_long_num||0,ysn=y.pos_short_num||0;
+    rows.push({tk:tk,fl:fl,fs:fs,fn:fn,yl:yl,ys:ys,yn:yn,totalOI:totalOI,
+      fln:fln,fsn:fsn,yln:yln,ysn:ysn});
+  });
+  rows.sort(function(a,b){return b.totalOI-a.totalOI});
+
+  var h='<div class="mets">';
+  h+=metric('Дата',dt||'\u2014');
+  h+=metric('Инструментов',rows.length);
+  var topFizLong=rows.slice(0,5).map(function(r){return r.tk}).join(', ');
+  h+=metric('Топ физ.лонг',topFizLong);
+  h+='</div>';
+
+  var trows=rows.map(function(r){
+    var fizPct=r.totalOI>0?(r.fl+Math.abs(r.fs))/r.totalOI*100:0;
+    return[
+      td(r.tk,'tk'),
+      tdr(nm(r.fl)),tdr(nm(Math.abs(r.fs))),
+      tdr('<span class="'+cls(r.fn)+'">'+nm(r.fn)+'</span>'),
+      tdr(r.fln+' / '+r.fsn),
+      tdr(nm(r.yl)),tdr(nm(Math.abs(r.ys))),
+      tdr('<span class="'+cls(r.yn)+'">'+nm(r.yn)+'</span>'),
+      tdr(r.yln+' / '+r.ysn),
+      tdr(n(fizPct,0)+'%')
+    ];
+  });
+  h+=tbl([['Тикер'],['Физ Long','r'],['Физ Short','r'],['Физ Net','r'],['Физ #L/#S','r'],
+    ['Юр Long','r'],['Юр Short','r'],['Юр Net','r'],['Юр #L/#S','r'],['Физ%','r']],trows,'futoi-tbl');
+  h+='<div style="color:var(--td);font-size:10px;margin-top:4px">'+rows.length+' инструментов | Нажмите на тикер в селекторе для графика истории</div>';
+  $('futoi-content').innerHTML=h;
+}
+
+function loadFutoiChart(ticker){
+var chartEl=$('futoi-chart');$('futoi-chart-wrap').style.display='';
+var togEl=$('futoi-toggles');
+try{Plotly.purge(chartEl)}catch(e){}
+chartEl.style.display='block';
+if(togEl)togEl.style.display='flex';
+chartEl.innerHTML='';
+fetch('/api/futoi/chart?ticker='+ticker+'&days=365').then(function(r){return r.json()}).then(function(resp){
+var data=resp.data||[];
+if(!data.length){chartEl.innerHTML='<div class="cap">Нет данных</div>';return}
+window._oiData=data;window._oiTicker=ticker;
+_drawOIChart();
+}).catch(function(e){chartEl.innerHTML='<div class="cap">Ошибка: '+e+'</div>'});
+}
+var _oiVisible={fiz_net:true,yur_net:true,price:true,fiz_long:false,fiz_short:false,yur_long:false,yur_short:false};
+window._togOI=function(el){
+var k=el.getAttribute('data-oi');
+_oiVisible[k]=!_oiVisible[k];
+el.classList.toggle('active');
+_drawOIChart();
+};
+function _drawOIChart(){
+var data=window._oiData;if(!data||!data.length)return;
+var ticker=window._oiTicker||'';
+var dates=data.map(function(d){return d.date});
+var traces=[];
+var series={
+fiz_net:{name:'Физ Net',color:'#2ee67a',dash:'solid'},
+fiz_long:{name:'Физ Long',color:'#00bcd4',dash:'solid'},
+fiz_short:{name:'Физ Short',color:'#ff9800',dash:'solid'},
+yur_net:{name:'Юр Net',color:'#ff5a6a',dash:'solid'},
+yur_long:{name:'Юр Long',color:'#9c27b0',dash:'solid'},
+yur_short:{name:'Юр Short',color:'#fcc73e',dash:'solid'}
+};
+var keys=Object.keys(series);
+for(var i=0;i<keys.length;i++){
+var k=keys[i];
+if(!_oiVisible[k])continue;
+var s=series[k];
+var vals=data.map(function(d){var v=d[k];return v!=null?v:null});
+traces.push({x:dates,y:vals,name:s.name,yaxis:'y',
+line:{color:s.color,width:k.includes('net')?2.5:1.5,dash:s.dash},
+hovertemplate:'%{x}<br>'+s.name+': %{y:,.0f}<extra></extra>'});
+}
+// Price on right axis
+if(_oiVisible.price){
+var prices=data.map(function(d){return d.price});
+traces.push({x:dates,y:prices,name:'Цена',yaxis:'y2',
+line:{color:'rgba(255,255,255,0.85)',width:2},
+hovertemplate:'%{x}<br>Цена: %{y:,.1f}<extra></extra>'});
+}
+var hasPrice=_oiVisible.price;
+Plotly.react('futoi-chart',traces,Object.assign({},PLT,{height:532,
+title:{text:ticker+' \u2014 OI & Price',font:{size:14,color:'#e2e8f0'}},
+xaxis:Object.assign({},PLT.xaxis,{rangeslider:{visible:false}}),
+yaxis:Object.assign({},PLT.yaxis,{title:'Контракты',zeroline:true,zerolinecolor:'rgba(255,255,255,0.15)',
+domain:hasPrice?[0,1]:[0,1],side:'left'}),
+yaxis2:hasPrice?{overlaying:'y',side:'right',showgrid:false,
+title:{text:'Цена',font:{color:'rgba(255,255,255,0.7)',size:10}},
+tickfont:{color:'rgba(255,255,255,0.6)',size:9},zeroline:false}:{visible:false},
+legend:{orientation:'v',y:0.98,x:0.99,xanchor:'right',yanchor:'top',bgcolor:'rgba(10,14,23,0.7)',bordercolor:'rgba(255,255,255,0.1)',borderwidth:1,font:{size:9,color:'#94a3b8'}},
+hovermode:'x unified',margin:{t:60,b:50,l:70,r:hasPrice?70:30}}),
+{responsive:true,displayModeBar:false});
+addFSBtn('futoi-chart-wrap');
+}
+
+
+
+
+// ============================================================
+// INLINE SCRIPT 3 (6584 chars)
+// ============================================================
+
+
+(function(){
+var NP=location.hostname==="packmanmarkets.ru"?"/api/news":"http://"+location.hostname+":8098/api/news";
+var npTag="all",npTickers=[],npSq="",npItems=[],npOff=0,npBusy=false,npMore=true;
+
+function npFmt(d){
+  var x=new Date(d),n=new Date(),m=Math.floor((n-x)/60000);
+  if(m<1)return"NOW";if(m<60)return m+"M";if(m<1440)return Math.floor(m/60)+"H";
+  return("0"+x.getDate()).slice(-2)+"."+("0"+(x.getMonth()+1)).slice(-2);
+}
+function npEsc(t){var e=document.createElement("span");e.textContent=t;return e.innerHTML;}
+
+function renderFilters(){
+  var c=document.getElementById("npActiveFilters");
+  if(!c)return;
+  if(npTickers.length===0&&npTag==="all"&&npSq===""){c.style.display="none";return;}
+  c.style.display="flex";
+  var h="";
+  for(var i=0;i<npTickers.length;i++){
+    h+='<span class="np-af-tag">'+npTickers[i]+' <span class="x" data-tk="'+npTickers[i]+'">&times;</span></span>';
+  }
+  if(npTag!=="all")h+='<span class="np-af-tag" style="color:var(--blue);background:rgba(91,156,246,.1);border-color:rgba(91,156,246,.25)">'+npTag.toUpperCase()+' <span class="x" data-type="tag">&times;</span></span>';
+  if(npSq)h+='<span class="np-af-tag" style="color:var(--text);background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)">&quot;'+npEsc(npSq)+'&quot; <span class="x" data-type="search">&times;</span></span>';
+  c.innerHTML=h;
+  c.querySelectorAll(".x").forEach(function(x){
+    x.addEventListener("click",function(e){
+      e.stopPropagation();
+      var tk=this.dataset.tk,tp=this.dataset.type;
+      if(tk)npTickers=npTickers.filter(function(t){return t!==tk;});
+      else if(tp==="tag"){npTag="all";document.querySelectorAll(".nfb").forEach(function(b){b.classList.toggle("act",b.dataset.tag==="all");});}
+      else if(tp==="search"){npSq="";document.getElementById("npSearch").value="";}
+      renderFilters();npLoad(true);
+    });
+  });
+}
+
+async function npLoad(reset){
+  if(npBusy)return;npBusy=true;
+  if(reset){npOff=0;npMore=true;npItems=[];}
+  try{
+    var r;
+    if(npSq.length>=2){
+      r=await(await fetch(NP+"/search?q="+encodeURIComponent(npSq)+"&limit=50")).json();
+      var items=r.items||[];
+      items.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+      if(npTickers.length>0){items=items.filter(function(it){for(var i=0;i<npTickers.length;i++){if((it.tickers||[]).indexOf(npTickers[i])>=0)return true;}return false;});}
+      npItems=items;npMore=false;
+    }else if(npTickers.length>1){
+      var all=[];
+      for(var ti=0;ti<npTickers.length;ti++){
+        var p=new URLSearchParams({limit:"30",offset:"0",ticker:npTickers[ti]});
+        if(npTag&&npTag!=="all")p.set("tag",npTag);
+        var tr=await(await fetch(NP+"/feed?"+p)).json();
+        all=all.concat(tr.items||[]);
+      }
+      var seen={};npItems=[];
+      all.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+      for(var i=0;i<all.length;i++){if(!seen[all[i].id]){seen[all[i].id]=true;npItems.push(all[i]);}}
+      npMore=false;
+    }else{
+      var p=new URLSearchParams({limit:"50",offset:String(npOff)});
+      if(npTickers.length===1)p.set("ticker",npTickers[0]);
+      if(npTag&&npTag!=="all")p.set("tag",npTag);
+      r=await(await fetch(NP+"/feed?"+p)).json();
+      var newItems=r.items||[];
+      newItems.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+      if(reset)npItems=newItems;else npItems=npItems.concat(newItems);
+      npMore=newItems.length===50;npOff+=newItems.length;
+    }
+    npRender();
+  }catch(e){var f=document.getElementById("npFeed");if(f)f.innerHTML='<div style="text-align:center;padding:20px;color:var(--td);font-size:10px">ERROR</div>';}
+  npBusy=false;
+}
+
+function npRender(){
+  var f=document.getElementById("npFeed");
+  if(!f)return;
+  if(npItems.length===0){f.innerHTML='<div style="text-align:center;padding:20px;color:var(--td);font-size:10px">NO NEWS</div>';return;}
+  var h="";
+  for(var i=0;i<npItems.length;i++){
+    var it=npItems[i];
+    var brk=(it.tags||[]).indexOf("breaking")>=0;
+    var tks="";
+    if(it.tickers){for(var j=0;j<it.tickers.length;j++){tks+='<span class="ntk" onclick="event.stopPropagation();window._npAdd(\''+it.tickers[j]+'\')">'+it.tickers[j]+'</span>';}}
+    var tgs="";
+    if(it.tags){for(var j=0;j<it.tags.length;j++){tgs+='<span class="ntg-'+it.tags[j]+'">'+it.tags[j].toUpperCase()+'</span>';}}
+    h+='<div class="ni'+(brk?' nbrk':'')+'" onclick="this.classList.toggle(\'nexp\')">'
+      +'<div class="ntm">'+npFmt(it.date)+'</div>'
+      +'<div class="nnb">'
+      +(tks?'<div class="nnm">'+tks+'</div>':'')
+      +'<div class="ntxt">'+npEsc(it.text)+'</div>'
+      +(tgs?'<div class="ntg">'+tgs+'</div>':'')
+      +'</div></div>';
+  }
+  f.innerHTML=h;
+}
+
+function npAddTicker(tk){
+  tk=tk.toUpperCase().trim();
+  if(!tk||npTickers.indexOf(tk)>=0)return;
+  npTickers.push(tk);
+  document.getElementById("npTicker").value="";
+  renderFilters();npLoad(true);
+}
+window._npAdd=npAddTicker;
+
+async function npStats(){
+  try{var r=await(await fetch(NP+"/stats")).json();
+  var el=document.getElementById("npToday");if(el)el.textContent=r.today_messages||0;
+  }catch(e){}
+}
+
+document.querySelectorAll(".nfb").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".nfb").forEach(function(x){x.classList.remove("act");});
+    b.classList.add("act");npTag=b.dataset.tag;renderFilters();npLoad(true);
+  });
+});
+document.getElementById("npAddTk").addEventListener("click",function(){var v=document.getElementById("npTicker").value.trim().toUpperCase();if(v)npAddTicker(v);});
+document.getElementById("npTicker").addEventListener("keydown",function(e){if(e.key==="Enter"){var v=e.target.value.trim().toUpperCase();if(v)npAddTicker(v);}});
+document.getElementById("npClearAll").addEventListener("click",function(){
+  npTickers=[];npTag="all";npSq="";
+  document.getElementById("npSearch").value="";document.getElementById("npTicker").value="";
+  document.querySelectorAll(".nfb").forEach(function(b){b.classList.toggle("act",b.dataset.tag==="all");});
+  renderFilters();npLoad(true);
+});
+var nst;
+document.getElementById("npSearch").addEventListener("input",function(e){clearTimeout(nst);nst=setTimeout(function(){npSq=e.target.value.trim();renderFilters();npLoad(true);},400);});
+document.getElementById("npFeed").addEventListener("scroll",function(e){var el=e.target;if(el.scrollTop+el.clientHeight>=el.scrollHeight-100&&npMore&&npBusy===false)npLoad(false);});
+
+setInterval(function(){if(npTag==="all"&&npTickers.length===0&&npSq==="")npLoad(true);npStats();},30000);
+npLoad(true);npStats();
+})();
+
+

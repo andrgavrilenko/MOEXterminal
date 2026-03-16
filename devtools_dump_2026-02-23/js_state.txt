@@ -1,0 +1,152 @@
+=== JavaScript State - Russian Market Packman Monitor ===
+Captured: 2026-02-23T17:03:09.013Z
+
+--- 3a. CUSTOM GLOBAL VARIABLES (non-standard) ---
+
+Plotly version: 2.27.0
+
+0 = [error: Converting circular structure to JSON
+    --> starting at object with constructor 'Window'
+    --- property 'window' closes the circle]
+AggregateError = [function, 2 args]
+Intl = {}
+WebSocket = [function, 1 args]
+VTTCue = [function, 3 args]
+RTCError = [function, 1 args]
+Profiler = [function, 1 args]
+PeriodicWave = [function, 1 args]
+Observable = [function, 1 args]
+KeyframeEffect = [function, 1 args]
+ImageData = [function, 2 args]
+FontFace = [function, 2 args]
+DOMError = [function, 1 args]
+Temporal = {}
+Float16Array = [function, 3 args]
+WebAssembly = {}
+crashReport = {}
+viewport = {}
+credentialless = false
+fence = null
+launchQueue = {}
+web3 = [error: Converting circular structure to JSON
+    --> starting at object with constructor 'Window'
+    --- property 'window' closes the circle]
+rabby = [error: Converting circular structure to JSON
+    --> starting at object with constructor 'Window'
+    --- property 'window' closes the circle]
+ethereum = [error: Converting circular structure to JSON
+    --> starting at object with constructor 'Window'
+    --- property 'window' closes the circle]
+PolyBool = {}
+sprintf = [function, 1 args]
+vsprintf = [function, 2 args]
+PlotlyGeoAssets = {"topojson":{}}
+Plotly = {"version":"2.27.0","Icons":{"undo":{"width":857.1,"height":1000,"path":"m857 350q0-87-34-166t-91-137-137-92-166-34q-96 0-183 41t-147 114q-4 6-4 13t5 11l76 77q6 5 14 5 9-1 13-7 41-53 100-82t126-29q58 0 110 23t92 61 61 91 22 111-22 111-61 91-92 61-110 23q-55 0-105-20t-90-57l77-77q17-16 8-38-10-23-33-
+n = [function, 1 args]
+nm = [function, 1 args]
+vf = [function, 1 args]
+pc = [function, 1 args]
+cls = [function, 1 args]
+bgcls = [function, 1 args]
+_sortState = {}
+_tblN = 71
+_lastSortTime = 0
+tbl = [function, 3 args]
+sortTbl = [function, 2 args]
+td = [function, 1 args]
+tdr = [function, 1 args]
+tdc = [function, 2 args]
+metric = [function, 2 args]
+initSubTabs = [function, 4 args]
+render = [function, 1 args]
+updateHeader = [function, 1 args]
+updateSidebar = [function, 1 args]
+renderArb = [function, 1 args]
+arbTable = [function, 1 args]
+renderRV = [function, 1 args]
+renderCurves = [function, 1 args]
+_ccL = 1
+_ccD = {"0":1,"1":0,"7":0,"30":0,"365":0}
+_ccC = ["#2ee67a","#fcc73e","#3b82f6","#ff5a6a","#8b5cf6"]
+_ccN = {"0":"Today","1":"-1D","7":"-1W","30":"-1M","365":"-1Y"}
+_ccAll = [{"code":"WHEAT","contracts":12,"category":"Агро"},{"code":"Nat Gas Mini","contracts":8,"category":"Энергоносители"},{"code":"Nat Gas","contracts":8,"category":"Энергоносители"},{"code":"MXI","contracts":8,"category":"Индексы"},{"code":"Brent Mini","contracts":8,"category":"Энергоносители"},{"code":
+_fillAssets = [function, 1 args]
+_ldCurve = [function, 1 args]
+_drCC = [function, 1 args]
+ypad = [function, 1 args]
+renderStocks = [function, 1 args]
+renderMD = [function, 1 args]
+openChartFS = [function, 1 args]
+addFSBtn = [function, 1 args]
+_calData = {"updated":"2026-02-23 01:10","days_ahead":180,"total":6401,"counts":{"coupon":6207,"maturity":187,"dividend":3,"cbr":4},"events":[{"type":"coupon","date":"2026-02-23","ticker":"RU000A0JTYJ6","name":"ФСК Россети (ПАО)-обл. сер.23","value":22.39,"currency":"rub","coupon_pct":8.98},{"type":"coupon","d
+_calLoading = false
+_fundsData = [{"fund_id":"if_10055","name":"Заблокированные активы паевого инвестиционного фонда «Атон - Фонд высоких технологий»","short_name":null,"ticker":null,"fund_type":"ЗПИФ","category":"Акции","management_company":"Арикапитал","management_fee":4.2,"sort_return":4838.08,"return_1m":3.18,"return_3m":-3.52,
+_fundsLoading = false
+_fundsSub = heatmap
+_fundsCat = all
+_fundsSearch = 
+_fundsSort = return_1y
+_fundsSortDir = -1
+_fundsHeatType = all
+_fSortClick = [function, 1 args]
+_fTypeBadge = [function, 1 args]
+_fRet = [function, 1 args]
+_fNav = [function, 1 args]
+_fFlow = [function, 1 args]
+_ocD = {"0":true,"7":true,"30":true,"90":true,"180":true,"365":true}
+_ocN = {"0":"Today","7":"-1W","30":"-1M","90":"-3M","180":"-6M","365":"-1Y"}
+_ocC = ["#00c853","#ff9800","#9c27b0","#00bcd4","#f44336"]
+_ocHist = {}
+_ocHistDates = 
+_drOC = [function, 1 args]
+renderStrat = [function, 1 args]
+renderPref = [function, 1 args]
+renderSector = [function, 1 args]
+renderMom = [function, 1 args]
+renderDiv = [function, 1 args]
+macroChartData = {"dates":["2013-01-01","2013-09-13","2014-02-03","2014-04-28","2014-07-28","2014-11-05","2014-12-12","2014-12-16","2015-02-02","2015-03-16","2015-05-05","2015-06-16","2015-08-03","2016-06-14","2016-09-19","2017-03-27","2017-05-02","2017-06-19","2017-09-18","2017-10-30","2017-12-18","2018-02-12","201
+macroInited = true
+initMacro = [function, 1 args]
+drawMacro = [function, 1 args]
+renderVolume = [function, 1 args]
+_futoi = {"date":"2026-02-22","data":[{"ticker":"YD","clgroup":"YUR","pos":-98626,"pos_long":39396,"pos_short":-138022,"pos_long_num":11,"pos_short_num":23},{"ticker":"YD","clgroup":"FIZ","pos":98626,"pos_long":132555,"pos_short":-33929,"pos_long_num":1210,"pos_short_num":379},{"ticker":"X5","clgroup":"YUR",
+_futoiLoading = false
+_futoiChart = null
+_foiCats = {"Валюта":["Si","CR","Eu","CNYRUBF","USDRUBF"],"Индексы":["RI","MX","MXI","IB","RB","VI","IMOEXF","RGBIF"],"Энерго":["BR","NG","NA","CL","TF","NR"],"Металлы":["GD","GL","SL","PT","PD","GLDRUBF","CC"],"Агро":["WH","CF","OJ","SU"],"Крипто":["BT","ET"],"Ставки":["ON","MF"]}
+_foiNames = {"Si":"USDRUB","CR":"CNYRUB","Eu":"EURRUB","BR":"Brent","GD":"Gold $","GL":"Gold ₽","NA":"Nat Gas","RI":"RTS","MX":"MOEX","VB":"VTB","GZ":"Gazprom","SV":"Sberbank","GK":"Norilsk","NR":"Brent Rub","SR":"Sberbank P","SS":"Surgutnfgz","IB":"iMOEX","RB":"RGBI","CC":"Copper","CE":"CHMF","NG":"Nat Gas","C
+_foiAll = [{"tk":"CR","total":19042835},{"tk":"CNYRUBF","total":6875362},{"tk":"Si","total":5422657},{"tk":"NR","total":2365228},{"tk":"GL","total":941917},{"tk":"CC","total":922719},{"tk":"IB","total":879908},{"tk":"RB","total":871735},{"tk":"Eu","total":856852},{"tk":"USDRUBF","total":728304},{"tk":"GK","to
+_foiGetCat = [function, 1 args]
+loadFutoiChart = [function, 1 args]
+_oiVisible = {"fiz_net":true,"yur_net":true,"price":true,"fiz_long":false,"fiz_short":false,"yur_long":false,"yur_short":false}
+_togOCD = [function, 1 args]
+setOfzType = [function, 1 args]
+setEqSector = [function, 1 args]
+setFutCat = [function, 1 args]
+setCorpF = [function, 2 args]
+setBtMode = [function, 2 args]
+toggleBt = [function, 1 args]
+_togOI = [function, 1 args]
+_npAdd = [function, 1 args]
+_declLoading = false
+_divLoading3 = false
+_consLoading = false
+_divData = {"LKOH":{"ticker":"LKOH","name":"ЛУКОЙЛ","sector":"Нефть/Газ","period":"всего 12м","div":973.5,"yield":18.79,"price":5180,"rec_date":"","dsi":0.96,"mcap":3589044.65,"size":"Large"},"FIXR":{"ticker":"FIXR","name":"Fix Price","sector":"Розничная торговля","period":"всего 12м","div":0.1012,"yield":17.9
+_declDiv = {"DIAS":[{"div":102,"yield":5.58,"record_date":"2026-03-23","payment_date":"2026-04-06"}],"VSEH":[{"div":2,"yield":2.66,"record_date":"2026-03-25","payment_date":"2026-04-08"}]}
+_consData = [{"ticker":"OKEY","name":"O`Key, гдр","type":"corp","rec":1,"target":35,"sales":244.0732,"ebitda":null,"net_income":null,"net_debt":null,"fcf":null,"dps":0,"ev_cons":null,"roe":null,"sector":"Потребит.","dps_src":""},{"ticker":"EUTR","name":"ЕвроТранс, ао","type":"corp","rec":1,"target":180,"sales":
+_consEvt = true
+_volEvt = true
+_corpData = [{"secid":"BYM000001818","name":"РесБел 331","issuer":"РесБел","face":1000,"currency":"USD","coupon":7.625,"matdate":"2027-06-29","listlevel":3,"type":"foreign","sector":"Субфед","avg_valtoday_22d":0,"price":0,"ytm":6.13,"duration":0,"valtoday":0,"numtrades":0,"spread":0,"rating":"—","g_spread":0,"o
+
+Total custom window properties: 149
+
+--- 3b. LOCAL STORAGE & SESSION STORAGE ---
+
+localStorage: EMPTY (0 keys)
+sessionStorage: EMPTY (0 keys)
+
+--- 3c. TIMERS/INTERVALS (update patterns) ---
+
+Detected polling intervals from network analysis:
+  1. /api/snapshot - ~3000ms interval (main data refresh)
+  2. /api/stats + /api/news/* - ~30000ms interval (stats + news)
+  3. OFZ curve dates are computed client-side and re-fetched on tab switch

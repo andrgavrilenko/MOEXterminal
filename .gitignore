@@ -1,0 +1,35 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Streamlit
+.streamlit/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Temp / junk
+nul
+
+# Large binary docs
+*.docx
+
+# Claude memory (local only)
+.claude/
+
+# Screenshots (PNG, large)
+screenshots/
+screenshots_2026-02-23/
+screenshots_2026-02-26/
+
+# Old archive
+Old_archive/

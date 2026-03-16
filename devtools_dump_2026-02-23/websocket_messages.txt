@@ -1,0 +1,50 @@
+=== WebSocket Messages - Russian Market Packman Monitor ===
+Captured: 2026-02-23T17:02:11.537Z
+
+--- WEBSOCKET ANALYSIS ---
+
+WebSocket connections found: NONE
+
+This application does NOT use WebSockets for live updates.
+Instead, it uses HTTP polling (Fetch API):
+
+  - /api/snapshot → polled every ~3 seconds via setInterval
+    Contains: equities, futures, OFZ, arbitrage, basis, spots, indexes,
+    sector_signals, momentum_table, div_basket, pref_signals, etc.
+
+  - /api/stats → polled every ~30 seconds
+    Contains: {today: N, total: N, ip: "..."}
+
+  - /api/news/feed + /api/news/stats → polled every ~30 seconds
+    Contains: news items from Telegram channels and RSS feeds
+
+--- DATA FORMAT ---
+All responses are JSON.
+All requests are GET (no POST/PUT/DELETE observed).
+No authentication headers observed.
+
+--- /api/snapshot RESPONSE STRUCTURE ---
+Top-level keys:
+  - key_rate
+  - spots
+  - indexes
+  - rusfar
+  - basis
+  - arbitrage
+  - calendar_spreads
+  - cross_fx
+  - cross_gold
+  - cip_forwards
+  - curves
+  - all_futures
+  - stock_carry
+  - algopack_futures
+  - equities
+  - ofz
+  - pref_signals
+  - sector_signals
+  - momentum_table
+  - div_basket
+  - macro_catalog
+  - volume_anomalies
+  - last_update

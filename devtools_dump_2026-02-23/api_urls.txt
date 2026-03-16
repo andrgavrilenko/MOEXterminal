@@ -1,0 +1,70 @@
+=== API URLs (Fetch/XHR) - Russian Market Packman Monitor ===
+Captured: 2026-02-23T17:01:56.361Z
+Total unique URLs: 31
+
+--- INTERNAL API (188.68.222.166:8503) ---
+http://188.68.222.166:8503/api/calendar
+http://188.68.222.166:8503/api/curve/catalog
+http://188.68.222.166:8503/api/futoi
+http://188.68.222.166:8503/api/futoi/dates
+http://188.68.222.166:8503/api/ofz_curve
+http://188.68.222.166:8503/api/ofz_curve?dates=2026-02-16
+http://188.68.222.166:8503/api/ofz_curve?dates=2026-02-16,2026-01-24
+http://188.68.222.166:8503/api/ofz_curve?dates=2026-02-16,2026-01-24,2025-11-25
+http://188.68.222.166:8503/api/ofz_curve?dates=2026-02-16,2026-01-24,2025-11-25,2025-08-27
+http://188.68.222.166:8503/api/ofz_curve?dates=2026-02-16,2026-01-24,2025-11-25,2025-08-27,2025-02-23
+http://188.68.222.166:8503/api/rankings?limit=3000&sort_by=return_1y
+http://188.68.222.166:8503/api/snapshot
+http://188.68.222.166:8503/api/stats
+http://188.68.222.166:8503/static/backtest_data.json
+http://188.68.222.166:8503/static/consensus.json
+http://188.68.222.166:8503/static/corp_bonds.json
+http://188.68.222.166:8503/static/declared_divs.json
+http://188.68.222.166:8503/static/dividends.json
+
+--- NEWS API (188.68.222.166:8098) ---
+http://188.68.222.166:8098/api/news/feed?limit=50&offset=0
+http://188.68.222.166:8098/api/news/feed?limit=50&offset=100
+http://188.68.222.166:8098/api/news/feed?limit=50&offset=50
+http://188.68.222.166:8098/api/news/stats
+
+--- EXTERNAL RESOURCES ---
+https://cdn.plot.ly/plotly-2.27.0.min.js
+https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap
+https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxQKYbABA.woff2
+https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxaKYbABA.woff2
+https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxdKYbABA.woff2
+https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2
+https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD1OwG_TA.woff2
+https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2
+https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD_OwG_TA.woff2
+
+--- OPENAPI ENDPOINTS (from /openapi.json) ---
+Main API (8503):
+  GET /
+  GET /gf/
+  GET /gf/api/fundamental/{ticker}
+  GET /gf/api/tickers
+  GET /api/macro/{series_id}
+  GET /api/stats
+  GET /api/futoi
+  GET /api/futoi/chart
+  GET /api/futoi/dates
+  GET /api/ofz_curve
+  GET /api/curve/catalog
+  GET /api/curve
+  GET /api/snapshot
+  GET /api/rankings
+  GET /api/calendar
+
+News API (8098) - "MOEX Terminal News API":
+  GET /api/news/feed
+  GET /api/news/search
+  GET /api/news/ticker/{ticker}
+  GET /api/news/channels
+  GET /api/news/stats
+
+--- POLLING PATTERN ---
+/api/snapshot - polled every ~3 seconds (main data feed)
+/api/stats - polled every ~30 seconds (visit counter)
+/api/news/feed + /api/news/stats - polled every ~30 seconds (news feed)
