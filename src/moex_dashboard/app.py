@@ -10,6 +10,7 @@ from moex_dashboard.ui.tab_arbitrage import render_tab_arbitrage
 from moex_dashboard.ui.tab_curves import render_tab_curves
 from moex_dashboard.ui.tab_relative import render_tab_relative
 from moex_dashboard.ui.tab_stocks import render_tab_stocks
+from moex_dashboard.ui.tab_strategies import render_tab_strategies
 
 st.set_page_config(page_title="MOEX Arbitrage", layout="wide")
 st.title("MOEX Arbitrage Dashboard")
@@ -33,7 +34,7 @@ with st.sidebar:
     # Auto-refresh toggle
     auto = st.toggle("Авто-обновление (30с)", value=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["Арбитраж", "Relative Value", "Кривые", "Акции"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Арбитраж", "Relative Value", "Кривые", "Акции", "Стратегии"])
 
 with tab1:
     render_tab_arbitrage(snapshot)
@@ -43,6 +44,8 @@ with tab3:
     render_tab_curves(snapshot)
 with tab4:
     render_tab_stocks(snapshot)
+with tab5:
+    render_tab_strategies()
 
 # Auto-refresh: sleep then rerun
 if auto:
